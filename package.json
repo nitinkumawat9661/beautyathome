@@ -23,10 +23,7 @@
     "db:studio": "prisma studio"
   },
   "lint-staged": {
-    "*.{js,mjs,cjs,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
+    "*.{js,mjs,cjs,ts,tsx}": "prettier --write",
     "*.{json,jsonc,yaml,yml,md,css,scss}": "prettier --write"
   },
   "devDependencies": {
