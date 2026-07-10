@@ -1,0 +1,13 @@
+{
+  "name": "@beautyathome/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "typescript"
+  ],
+  "exports": {
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/nextjs": "./typescript/nextjs.json",
+    "./typescript/nestjs": "./typescript/nestjs.json"
+  }
+}

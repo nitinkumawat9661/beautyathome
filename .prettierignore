@@ -1,0 +1,11 @@
+node_modules
+.next
+dist
+coverage
+.turbo
+database/generated
+pnpm-lock.yaml
+docs
+README.md
+apps/*/README.md
+**/next-env.d.ts

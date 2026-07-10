@@ -12,9 +12,41 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean && rimraf .turbo coverage",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,jsonc,yaml,yml,md,css,scss}": "prettier --write"
   },
   "devDependencies": {
-    "turbo": "^2.10.4"
+    "@eslint/js": "^10.0.1",
+    "dotenv": "^17.4.2",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4",
+    "prisma": "^7.8.0",
+    "rimraf": "^6.1.3",
+    "tsx": "^4.23.0",
+    "turbo": "^2.10.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.63.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.8.0"
   }
 }
