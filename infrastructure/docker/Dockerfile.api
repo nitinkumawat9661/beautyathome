@@ -1,0 +1,29 @@
+FROM node:24-alpine AS base
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable && corepack prepare pnpm@11.10.0 --activate
+WORKDIR /app
+
+FROM base AS dependencies
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json apps/api/package.json
+COPY packages/config/package.json packages/config/package.json
+COPY packages/types/package.json packages/types/package.json
+COPY packages/utils/package.json packages/utils/package.json
+RUN pnpm install --frozen-lockfile
+
+FROM dependencies AS builder
+COPY . .
+RUN pnpm --filter @beautyathome/api... build
+
+FROM base AS runner
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/apps/api/package.json apps/api/package.json
+COPY --from=builder /app/apps/api/dist apps/api/dist
+COPY --from=builder /app/node_modules node_modules
+COPY --from=builder /app/apps/api/node_modules apps/api/node_modules
+USER node
+EXPOSE 4000
+CMD ["node", "apps/api/dist/main.js"]
