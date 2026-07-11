@@ -313,6 +313,7 @@ export class AuthService {
           lastIpHash: this.crypto.requestContextHash(context.ipAddress, 'ip'),
           expiresAt: sessionExpiresAt,
           lastUsedAt: now,
+          lastStepUpAt: now,
         },
       });
 
@@ -437,6 +438,7 @@ export class AuthService {
           lastIpHash: this.crypto.requestContextHash(context.ipAddress, 'ip'),
           expiresAt,
           lastUsedAt: now,
+          lastStepUpAt: current.lastStepUpAt,
         },
       });
 

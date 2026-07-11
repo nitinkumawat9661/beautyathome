@@ -45,6 +45,7 @@ function createFixture(): {
     JWT_ISSUER: 'beautyathome-api-test',
     JWT_AUDIENCE: 'beautyathome-web-test',
     JWT_ACCESS_TTL_SECONDS: 900,
+    STEP_UP_TTL_SECONDS: 600,
     REFRESH_TOKEN_TTL_SECONDS: 2_592_000,
     REFRESH_COOKIE_NAME: 'bah_refresh',
     REFRESH_COOKIE_SAME_SITE: 'lax',

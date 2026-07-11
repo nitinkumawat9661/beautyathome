@@ -27,6 +27,12 @@ const environmentSchema = z
       .min(60)
       .max(3_600)
       .default(900),
+    STEP_UP_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(60)
+      .max(3_600)
+      .default(600),
     REFRESH_TOKEN_TTL_SECONDS: z.coerce
       .number()
       .int()

@@ -14,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { AccessTokenGuard } from './auth/guards/access-token.guard';
 import { AccountStatusGuard } from './auth/guards/account-status.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { RecentStepUpGuard } from './auth/guards/recent-step-up.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
@@ -45,6 +46,7 @@ import { UsersModule } from './users/users.module';
     { provide: APP_GUARD, useClass: AccessTokenGuard },
     { provide: APP_GUARD, useClass: AccountStatusGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: RecentStepUpGuard },
     { provide: APP_INTERCEPTOR, useClass: SensitiveResponseInterceptor },
   ],
 })

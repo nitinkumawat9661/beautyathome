@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { AccountStatusGuard } from './guards/account-status.guard';
 import { OriginGuard } from './guards/origin.guard';
+import { RecentStepUpGuard } from './guards/recent-step-up.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { OtpDeliveryService } from './otp-delivery.service';
 
@@ -23,6 +24,7 @@ import { OtpDeliveryService } from './otp-delivery.service';
     AccountStatusGuard,
     RolesGuard,
     OriginGuard,
+    RecentStepUpGuard,
   ],
   exports: [
     AuthService,
@@ -30,6 +32,7 @@ import { OtpDeliveryService } from './otp-delivery.service';
     AccessTokenGuard,
     AccountStatusGuard,
     RolesGuard,
+    RecentStepUpGuard,
   ],
 })
 export class AuthModule {}
