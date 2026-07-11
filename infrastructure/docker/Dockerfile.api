@@ -7,6 +7,8 @@ WORKDIR /app
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/package.json
+COPY database/package.json database/package.json
+COPY packages/auth/package.json packages/auth/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/types/package.json packages/types/package.json
 COPY packages/utils/package.json packages/utils/package.json
@@ -14,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS builder
 COPY . .
-RUN pnpm --filter @beautyathome/api... build
+RUN pnpm db:generate && pnpm --filter @beautyathome/api... build
 
 FROM base AS runner
 ENV NODE_ENV=production
@@ -22,6 +24,10 @@ WORKDIR /app
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/apps/api/package.json apps/api/package.json
 COPY --from=builder /app/apps/api/dist apps/api/dist
+COPY --from=builder /app/database/package.json database/package.json
+COPY --from=builder /app/database/dist database/dist
+COPY --from=builder /app/packages/auth/package.json packages/auth/package.json
+COPY --from=builder /app/packages/auth/dist packages/auth/dist
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/apps/api/node_modules apps/api/node_modules
 USER node

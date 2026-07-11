@@ -7,6 +7,7 @@ WORKDIR /app
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/package.json
+COPY packages/auth/package.json packages/auth/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/types/package.json packages/types/package.json
 COPY packages/ui/package.json packages/ui/package.json
@@ -14,6 +15,8 @@ COPY packages/utils/package.json packages/utils/package.json
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS builder
+ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY . .
 RUN pnpm --filter @beautyathome/web... build
 
