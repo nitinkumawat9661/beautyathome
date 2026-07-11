@@ -69,6 +69,148 @@ enum SessionRevocationReason {
   @@map("session_revocation_reason")
 }
 
+enum CityStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("city_status")
+}
+
+enum ServiceAreaStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("service_area_status")
+}
+
+enum ServiceCategoryStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("service_category_status")
+}
+
+enum MasterServiceStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+
+  @@map("master_service_status")
+}
+
+enum ServiceCityStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+
+  @@map("service_city_status")
+}
+
+enum PricePolicyStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("price_policy_status")
+}
+
+enum MediaModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@map("media_moderation_status")
+}
+
+enum ProfessionalServiceState {
+  ENABLED
+  DISABLED
+  SUSPENDED
+
+  @@map("professional_service_state")
+}
+
+enum ServiceRequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+
+  @@map("service_request_status")
+}
+
+enum LaunchEligibilityStatus {
+  NOT_ASSESSED
+  UNDER_REVIEW
+  ELIGIBLE
+  INELIGIBLE
+  SUSPENDED
+
+  @@map("launch_eligibility_status")
+}
+
+enum VerificationApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+
+  @@map("verification_application_status")
+}
+
+enum IsoWeekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+
+  @@map("iso_weekday")
+}
+
+enum DateOverrideKind {
+  AVAILABLE
+  UNAVAILABLE
+
+  @@map("date_override_kind")
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  HELD
+  BOOKED
+  BLOCKED
+  EXPIRED
+
+  @@map("availability_status")
+}
+
+enum AvailabilitySource {
+  WEEKLY
+  OVERRIDE
+  AD_HOC
+
+  @@map("availability_source")
+}
+
+enum AuditActorType {
+  USER
+  SYSTEM
+  JOB
+
+  @@map("audit_actor_type")
+}
+
+enum AuditOutcome {
+  SUCCEEDED
+  FAILED
+  DENIED
+
+  @@map("audit_outcome")
+}
+
 /// A platform identity. Mobile numbers are normalized to E.164 before the API
 /// creates the encrypted value and deterministic lookup HMAC stored here.
 model User {
@@ -82,12 +224,25 @@ model User {
   updatedAt                        DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   deletedAt                        DateTime?  @map("deleted_at") @db.Timestamptz(3)
 
-  roles               UserRole[]
-  customerProfile     CustomerProfile?
-  professionalProfile ProfessionalProfile?
-  adminProfile        AdminProfile?
-  otpChallenges       OtpChallenge[]
-  authSessions        AuthSession[]
+  roles                            UserRole[]
+  customerProfile                  CustomerProfile?
+  professionalProfile              ProfessionalProfile?
+  adminProfile                     AdminProfile?
+  otpChallenges                    OtpChallenge[]
+  authSessions                     AuthSession[]
+  serviceCategoriesCreated         ServiceCategory[]             @relation("ServiceCategoryCreator")
+  servicesCreated                  Service[]                     @relation("ServiceCreator")
+  servicesReviewed                 Service[]                     @relation("ServiceReviewer")
+  pricePoliciesCreated             ServiceCityPricePolicy[]      @relation("PricePolicyCreator")
+  pricePoliciesReviewed            ServiceCityPricePolicy[]      @relation("PricePolicyReviewer")
+  eligibilityReviews               ProfessionalProfile[]         @relation("EligibilityReviewer")
+  serviceRequestsReviewed          ProfessionalServiceRequest[]  @relation("ServiceRequestReviewer")
+  serviceRequestHistoryEvents      ServiceRequestStatusHistory[] @relation("ServiceRequestHistoryActor")
+  verificationApplicationsReviewed VerificationApplication[]     @relation("VerificationReviewer")
+  verificationNotesAuthored        VerificationNote[]            @relation("VerificationNoteAuthor")
+  verificationHistoryEvents        VerificationStatusHistory[]   @relation("VerificationHistoryActor")
+  professionalServicesSuspended    ProfessionalService[]         @relation("ProfessionalServiceSuspender")
+  auditEvents                      AuditEvent[]                  @relation("AuditActor")
 
   @@index([mobileNumberLookupHash], map: "users_mobile_number_lookup_hash_idx")
   @@index([status, deletedAt], map: "users_status_deleted_at_idx")
@@ -122,19 +277,46 @@ model CustomerProfile {
 }
 
 model ProfessionalProfile {
-  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId             String             @unique(map: "professional_profiles_user_id_key") @map("user_id") @db.Uuid
-  displayName        String?            @map("display_name") @db.VarChar(100)
-  biography          String?            @db.VarChar(1000)
-  experienceYears    Int?               @map("experience_years")
-  verificationStatus VerificationStatus @default(DRAFT) @map("verification_status")
-  isServiceActive    Boolean            @default(false) @map("is_service_active")
-  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                           String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                       String                  @unique(map: "professional_profiles_user_id_key") @map("user_id") @db.Uuid
+  cityId                       String?                 @map("city_id") @db.Uuid
+  displayName                  String?                 @map("display_name") @db.VarChar(100)
+  profileImageUploadId         String?                 @map("profile_image_upload_id") @db.Uuid
+  profileImageOriginObjectKey  String?                 @map("profile_image_origin_object_key") @db.Text
+  profileImagePublicObjectKey  String?                 @map("profile_image_public_object_key") @db.Text
+  profileImageModerationStatus MediaModerationStatus?  @map("profile_image_moderation_status")
+  biography                    String?                 @db.VarChar(2000)
+  experienceYears              Int?                    @map("experience_years")
+  languages                    String[]                @default([]) @db.VarChar(35)
+  verificationStatus           VerificationStatus      @default(DRAFT) @map("verification_status")
+  launchEligibilityStatus      LaunchEligibilityStatus @default(NOT_ASSESSED) @map("launch_eligibility_status")
+  eligibilityPolicyVersion     String?                 @map("eligibility_policy_version") @db.VarChar(100)
+  eligibilityReviewedByUserId  String?                 @map("eligibility_reviewed_by_user_id") @db.Uuid
+  eligibilityReviewedAt        DateTime?               @map("eligibility_reviewed_at") @db.Timestamptz(3)
+  isServiceActive              Boolean                 @default(false) @map("is_service_active")
+  averageRating                Decimal?                @map("average_rating") @db.Decimal(3, 2)
+  ratingCount                  Int                     @default(0) @map("rating_count")
+  completedJobs                Int                     @default(0) @map("completed_jobs")
+  internalScore                Decimal?                @map("internal_score") @db.Decimal(7, 3)
+  internalScoreVersion         String?                 @map("internal_score_version") @db.VarChar(100)
+  internalScoreUpdatedAt       DateTime?               @map("internal_score_updated_at") @db.Timestamptz(3)
+  version                      Int                     @default(1)
+  createdAt                    DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                    DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city                  City?                        @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  eligibilityReviewedBy User?                        @relation("EligibilityReviewer", fields: [eligibilityReviewedByUserId], references: [id], onDelete: SetNull)
+  serviceAreas          ProfessionalServiceArea[]
+  portfolioAssets       PortfolioAsset[]
+  certificates          ProfessionalCertificate[]
+  services              ProfessionalService[]
+  serviceRequests       ProfessionalServiceRequest[]
+  verificationApps      VerificationApplication[]
+  availabilitySchedules AvailabilitySchedule[]
+  availabilitySlots     AvailabilitySlot[]
 
-  @@index([verificationStatus, isServiceActive], map: "professional_profiles_discovery_status_idx")
+  @@index([cityId, verificationStatus, launchEligibilityStatus, isServiceActive], map: "professional_profiles_discovery_status_idx")
   @@map("professional_profiles")
 }
 
@@ -216,4 +398,507 @@ model AuthSession {
   @@index([familyId, createdAt], map: "auth_sessions_family_created_at_idx")
   @@index([expiresAt], map: "auth_sessions_expires_at_idx")
   @@map("auth_sessions")
+}
+
+model City {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String     @db.VarChar(120)
+  normalizedName String     @map("normalized_name") @db.VarChar(120)
+  slug           String     @unique(map: "cities_slug_key") @db.VarChar(100)
+  state          String     @db.VarChar(120)
+  countryCode    String     @default("IN") @map("country_code") @db.Char(2)
+  timeZone       String     @map("time_zone") @db.VarChar(100)
+  status         CityStatus @default(INACTIVE)
+  version        Int        @default(1)
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  serviceAreas          ServiceArea[]
+  professionalProfiles  ProfessionalProfile[]
+  serviceAvailability   ServiceCityAvailability[]
+  pricePolicies         ServiceCityPricePolicy[]
+  professionalServices  ProfessionalService[]
+  requestCities         ProfessionalServiceRequestCity[]
+  availabilitySchedules AvailabilitySchedule[]
+  availabilitySlots     AvailabilitySlot[]
+
+  @@unique([countryCode, state, normalizedName], map: "cities_country_state_normalized_name_key")
+  @@index([status, name], map: "cities_status_name_idx")
+  @@map("cities")
+}
+
+model ServiceArea {
+  id                       String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cityId                   String            @map("city_id") @db.Uuid
+  name                     String            @db.VarChar(120)
+  normalizedName           String            @map("normalized_name") @db.VarChar(120)
+  slug                     String            @db.VarChar(100)
+  status                   ServiceAreaStatus @default(INACTIVE)
+  serviceabilityDefinition Json?             @map("serviceability_definition")
+  version                  Int               @default(1)
+  createdAt                DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  city          City                      @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  professionals ProfessionalServiceArea[]
+
+  @@unique([cityId, slug], map: "service_areas_city_slug_key")
+  @@unique([cityId, normalizedName], map: "service_areas_city_normalized_name_key")
+  @@index([cityId, status, name], map: "service_areas_city_status_name_idx")
+  @@map("service_areas")
+}
+
+model ServiceCategory {
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parentId        String?               @map("parent_id") @db.Uuid
+  name            String                @db.VarChar(120)
+  normalizedName  String                @map("normalized_name") @db.VarChar(120)
+  slug            String                @unique(map: "service_categories_slug_key") @db.VarChar(100)
+  description     String?               @db.VarChar(2000)
+  displayOrder    Int                   @default(0) @map("display_order")
+  status          ServiceCategoryStatus @default(INACTIVE)
+  version         Int                   @default(1)
+  createdByUserId String                @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  parent    ServiceCategory?             @relation("ServiceCategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children  ServiceCategory[]            @relation("ServiceCategoryTree")
+  createdBy User                         @relation("ServiceCategoryCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  services  Service[]
+  requests  ProfessionalServiceRequest[]
+
+  @@unique([parentId, normalizedName], map: "service_categories_parent_normalized_name_key")
+  @@index([status, displayOrder, name], map: "service_categories_status_display_order_idx")
+  @@map("service_categories")
+}
+
+model Service {
+  id                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId             String              @map("category_id") @db.Uuid
+  name                   String              @db.VarChar(120)
+  normalizedName         String              @map("normalized_name") @db.VarChar(120)
+  slug                   String              @db.VarChar(100)
+  description            String              @db.VarChar(2000)
+  defaultDurationMinutes Int                 @map("default_duration_minutes")
+  status                 MasterServiceStatus @default(INACTIVE)
+  version                Int                 @default(1)
+  createdByUserId        String              @map("created_by_user_id") @db.Uuid
+  reviewedByUserId       String?             @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt             DateTime?           @map("reviewed_at") @db.Timestamptz(3)
+  suspensionReasonCode   String?             @map("suspension_reason_code") @db.VarChar(80)
+  suspensionReason       String?             @map("suspension_reason") @db.VarChar(500)
+  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  category             ServiceCategory              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdBy            User                         @relation("ServiceCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reviewedBy           User?                        @relation("ServiceReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  images               ServiceImage[]
+  cityAvailability     ServiceCityAvailability[]
+  pricePolicies        ServiceCityPricePolicy[]
+  professionalServices ProfessionalService[]
+  linkedRequests       ProfessionalServiceRequest[]
+  availabilitySlots    AvailabilitySlot[]
+
+  @@unique([categoryId, normalizedName], map: "services_category_normalized_name_key")
+  @@unique([categoryId, slug], map: "services_category_slug_key")
+  @@index([categoryId, status, name], map: "services_category_status_name_idx")
+  @@map("services")
+}
+
+model ServiceImage {
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  serviceId               String                @map("service_id") @db.Uuid
+  uploadId                String                @unique(map: "service_images_upload_id_key") @map("upload_id") @db.Uuid
+  originObjectKey         String?               @map("origin_object_key") @db.Text
+  approvedPublicObjectKey String?               @map("approved_public_object_key") @db.Text
+  altText                 String                @map("alt_text") @db.VarChar(180)
+  displayOrder            Int                   @default(0) @map("display_order")
+  moderationStatus        MediaModerationStatus @default(PENDING) @map("moderation_status")
+  userSafeRejectionReason String?               @map("user_safe_rejection_reason") @db.VarChar(500)
+  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, displayOrder], map: "service_images_service_display_order_key")
+  @@index([serviceId, moderationStatus], map: "service_images_service_moderation_idx")
+  @@map("service_images")
+}
+
+model ServiceCityAvailability {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  serviceId String            @map("service_id") @db.Uuid
+  cityId    String            @map("city_id") @db.Uuid
+  status    ServiceCityStatus @default(INACTIVE)
+  version   Int               @default(1)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  city    City    @relation(fields: [cityId], references: [id], onDelete: Restrict)
+
+  @@unique([serviceId, cityId], map: "service_city_availability_service_city_key")
+  @@index([cityId, status, serviceId], map: "service_city_availability_discovery_idx")
+  @@map("service_city_availability")
+}
+
+model ServiceCityPricePolicy {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  serviceId         String            @map("service_id") @db.Uuid
+  cityId            String            @map("city_id") @db.Uuid
+  version           Int
+  minimumPricePaise Int               @map("minimum_price_paise")
+  maximumPricePaise Int               @map("maximum_price_paise")
+  currency          String            @default("INR") @db.Char(3)
+  status            PricePolicyStatus @default(INACTIVE)
+  effectiveFrom     DateTime          @map("effective_from") @db.Timestamptz(3)
+  effectiveTo       DateTime?         @map("effective_to") @db.Timestamptz(3)
+  createdByUserId   String            @map("created_by_user_id") @db.Uuid
+  reviewedByUserId  String?           @map("reviewed_by_user_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  service    Service               @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  city       City                  @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  createdBy  User                  @relation("PricePolicyCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reviewedBy User?                 @relation("PricePolicyReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  offerings  ProfessionalService[]
+
+  @@unique([serviceId, cityId, version], map: "service_city_price_policies_service_city_version_key")
+  @@index([serviceId, cityId, status, effectiveFrom], map: "service_city_price_policies_effective_idx")
+  @@map("service_city_price_policies")
+}
+
+model ProfessionalServiceArea {
+  professionalId String   @map("professional_id") @db.Uuid
+  serviceAreaId  String   @map("service_area_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  serviceArea  ServiceArea         @relation(fields: [serviceAreaId], references: [id], onDelete: Cascade)
+
+  @@id([professionalId, serviceAreaId], map: "professional_service_areas_pkey")
+  @@index([serviceAreaId, professionalId], map: "professional_service_areas_area_professional_idx")
+  @@map("professional_service_areas")
+}
+
+model PortfolioAsset {
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId          String                @map("professional_id") @db.Uuid
+  uploadId                String                @unique(map: "portfolio_assets_upload_id_key") @map("upload_id") @db.Uuid
+  originObjectKey         String?               @map("origin_object_key") @db.Text
+  approvedPublicObjectKey String?               @map("approved_public_object_key") @db.Text
+  altText                 String                @map("alt_text") @db.VarChar(180)
+  displayOrder            Int                   @default(0) @map("display_order")
+  moderationStatus        MediaModerationStatus @default(PENDING) @map("moderation_status")
+  userSafeRejectionReason String?               @map("user_safe_rejection_reason") @db.VarChar(500)
+  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  professional ProfessionalProfile        @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  services     ProfessionalServiceAsset[]
+
+  @@unique([professionalId, displayOrder], map: "portfolio_assets_professional_display_order_key")
+  @@index([professionalId, moderationStatus], map: "portfolio_assets_professional_moderation_idx")
+  @@map("portfolio_assets")
+}
+
+model ProfessionalCertificate {
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId          String                @map("professional_id") @db.Uuid
+  uploadId                String                @unique(map: "professional_certificates_upload_id_key") @map("upload_id") @db.Uuid
+  title                   String                @db.VarChar(120)
+  issuer                  String                @db.VarChar(120)
+  issuedOn                DateTime              @map("issued_on") @db.Date
+  expiresOn               DateTime?             @map("expires_on") @db.Date
+  privateObjectKey        String?               @map("private_object_key") @db.Text
+  moderationStatus        MediaModerationStatus @default(PENDING) @map("moderation_status")
+  userSafeRejectionReason String?               @map("user_safe_rejection_reason") @db.VarChar(500)
+  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@index([professionalId, moderationStatus], map: "professional_certificates_professional_moderation_idx")
+  @@map("professional_certificates")
+}
+
+model ProfessionalService {
+  id                       String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId           String                   @map("professional_id") @db.Uuid
+  serviceId                String                   @map("service_id") @db.Uuid
+  cityId                   String                   @map("city_id") @db.Uuid
+  pricePolicyId            String?                  @map("price_policy_id") @db.Uuid
+  pricePaise               Int                      @map("price_paise")
+  estimatedDurationMinutes Int                      @map("estimated_duration_minutes")
+  state                    ProfessionalServiceState @default(DISABLED)
+  adminSuspendedByUserId   String?                  @map("admin_suspended_by_user_id") @db.Uuid
+  adminSuspendedAt         DateTime?                @map("admin_suspended_at") @db.Timestamptz(3)
+  adminReasonCode          String?                  @map("admin_reason_code") @db.VarChar(80)
+  userSafeAdminReason      String?                  @map("user_safe_admin_reason") @db.VarChar(500)
+  version                  Int                      @default(1)
+  createdAt                DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  professional     ProfessionalProfile        @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  service          Service                    @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  city             City                       @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  pricePolicy      ServiceCityPricePolicy?    @relation(fields: [pricePolicyId], references: [id], onDelete: SetNull)
+  adminSuspendedBy User?                      @relation("ProfessionalServiceSuspender", fields: [adminSuspendedByUserId], references: [id], onDelete: SetNull)
+  assets           ProfessionalServiceAsset[]
+
+  @@unique([professionalId, serviceId, cityId], map: "professional_services_professional_service_city_key")
+  @@index([serviceId, cityId, state, pricePaise], map: "professional_services_discovery_idx")
+  @@index([professionalId, state], map: "professional_services_professional_state_idx")
+  @@map("professional_services")
+}
+
+model ProfessionalServiceAsset {
+  professionalServiceId String   @map("professional_service_id") @db.Uuid
+  portfolioAssetId      String   @map("portfolio_asset_id") @db.Uuid
+  displayOrder          Int      @default(0) @map("display_order")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  professionalService ProfessionalService @relation(fields: [professionalServiceId], references: [id], onDelete: Cascade)
+  portfolioAsset      PortfolioAsset      @relation(fields: [portfolioAssetId], references: [id], onDelete: Cascade)
+
+  @@id([professionalServiceId, portfolioAssetId], map: "professional_service_assets_pkey")
+  @@unique([professionalServiceId, displayOrder], map: "professional_service_assets_service_display_order_key")
+  @@map("professional_service_assets")
+}
+
+model ProfessionalServiceRequest {
+  id                       String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId           String               @map("professional_id") @db.Uuid
+  categoryId               String               @map("category_id") @db.Uuid
+  proposedName             String               @map("proposed_name") @db.VarChar(120)
+  normalizedName           String               @map("normalized_name") @db.VarChar(120)
+  proposedDescription      String               @map("proposed_description") @db.VarChar(2000)
+  suggestedDurationMinutes Int?                 @map("suggested_duration_minutes")
+  suggestedPricePaise      Int?                 @map("suggested_price_paise")
+  status                   ServiceRequestStatus @default(SUBMITTED)
+  linkedServiceId          String?              @map("linked_service_id") @db.Uuid
+  reviewedByUserId         String?              @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt               DateTime?            @map("reviewed_at") @db.Timestamptz(3)
+  reasonCode               String?              @map("reason_code") @db.VarChar(80)
+  userSafeDecisionReason   String?              @map("user_safe_decision_reason") @db.VarChar(500)
+  internalNote             String?              @map("internal_note") @db.VarChar(2000)
+  version                  Int                  @default(1)
+  submittedAt              DateTime             @default(now()) @map("submitted_at") @db.Timestamptz(3)
+  createdAt                DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  professional  ProfessionalProfile              @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  category      ServiceCategory                  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  linkedService Service?                         @relation(fields: [linkedServiceId], references: [id], onDelete: SetNull)
+  reviewedBy    User?                            @relation("ServiceRequestReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  cities        ProfessionalServiceRequestCity[]
+  history       ServiceRequestStatusHistory[]
+
+  @@index([status, submittedAt], map: "professional_service_requests_status_submitted_idx")
+  @@index([professionalId, categoryId, normalizedName], map: "professional_service_requests_duplicate_lookup_idx")
+  @@map("professional_service_requests")
+}
+
+model ProfessionalServiceRequestCity {
+  requestId String @map("request_id") @db.Uuid
+  cityId    String @map("city_id") @db.Uuid
+
+  request ProfessionalServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  city    City                       @relation(fields: [cityId], references: [id], onDelete: Restrict)
+
+  @@id([requestId, cityId], map: "professional_service_request_cities_pkey")
+  @@index([cityId, requestId], map: "professional_service_request_cities_city_request_idx")
+  @@map("professional_service_request_cities")
+}
+
+model ServiceRequestStatusHistory {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId             String                @map("request_id") @db.Uuid
+  fromStatus            ServiceRequestStatus? @map("from_status")
+  toStatus              ServiceRequestStatus  @map("to_status")
+  actorUserId           String                @map("actor_user_id") @db.Uuid
+  reasonCode            String?               @map("reason_code") @db.VarChar(80)
+  requestIdempotencyKey String?               @map("request_idempotency_key") @db.VarChar(128)
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  serviceRequest ProfessionalServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  actor          User                       @relation("ServiceRequestHistoryActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, createdAt], map: "service_request_status_history_request_created_idx")
+  @@map("service_request_status_history")
+}
+
+model VerificationApplication {
+  id                                   String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId                       String                        @map("professional_id") @db.Uuid
+  version                              Int
+  status                               VerificationApplicationStatus @default(DRAFT)
+  eligibilityPolicyVersionAcknowledged String                        @map("eligibility_policy_version_acknowledged") @db.VarChar(100)
+  eligibilityDeclarationAcceptedAt     DateTime                      @map("eligibility_declaration_accepted_at") @db.Timestamptz(3)
+  reviewedByUserId                     String?                       @map("reviewed_by_user_id") @db.Uuid
+  submittedAt                          DateTime?                     @map("submitted_at") @db.Timestamptz(3)
+  reviewedAt                           DateTime?                     @map("reviewed_at") @db.Timestamptz(3)
+  reasonCode                           String?                       @map("reason_code") @db.VarChar(80)
+  userSafeDecisionReason               String?                       @map("user_safe_decision_reason") @db.VarChar(500)
+  internalNote                         String?                       @map("internal_note") @db.VarChar(2000)
+  correctionAllowed                    Boolean                       @default(false) @map("correction_allowed")
+  createdAt                            DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                            DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  professional ProfessionalProfile         @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  reviewedBy   User?                       @relation("VerificationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  notes        VerificationNote[]
+  history      VerificationStatusHistory[]
+
+  @@unique([professionalId, version], map: "verification_applications_professional_version_key")
+  @@index([status, submittedAt], map: "verification_applications_status_submitted_idx")
+  @@map("verification_applications")
+}
+
+model VerificationNote {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicationId String   @map("application_id") @db.Uuid
+  authorUserId  String   @map("author_user_id") @db.Uuid
+  note          String   @db.VarChar(2000)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  application VerificationApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  author      User                    @relation("VerificationNoteAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+
+  @@index([applicationId, createdAt], map: "verification_notes_application_created_idx")
+  @@map("verification_notes")
+}
+
+model VerificationStatusHistory {
+  id            String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicationId String                         @map("application_id") @db.Uuid
+  fromStatus    VerificationApplicationStatus? @map("from_status")
+  toStatus      VerificationApplicationStatus  @map("to_status")
+  actorUserId   String                         @map("actor_user_id") @db.Uuid
+  reasonCode    String?                        @map("reason_code") @db.VarChar(80)
+  createdAt     DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  application VerificationApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  actor       User                    @relation("VerificationHistoryActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([applicationId, createdAt], map: "verification_status_history_application_created_idx")
+  @@map("verification_status_history")
+}
+
+model AvailabilitySchedule {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId String   @map("professional_id") @db.Uuid
+  cityId         String   @map("city_id") @db.Uuid
+  timeZone       String   @map("time_zone") @db.VarChar(100)
+  version        Int      @default(1)
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  professional ProfessionalProfile        @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  city         City                       @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  weeklyRules  AvailabilityWeeklyRule[]
+  overrides    AvailabilityDateOverride[]
+  slots        AvailabilitySlot[]
+
+  @@index([professionalId, cityId, isActive], map: "availability_schedules_professional_city_active_idx")
+  @@map("availability_schedules")
+}
+
+model AvailabilityWeeklyRule {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scheduleId  String     @map("schedule_id") @db.Uuid
+  weekday     IsoWeekday
+  startMinute Int        @map("start_minute")
+  endMinute   Int        @map("end_minute")
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  schedule AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, weekday, startMinute], map: "availability_weekly_rules_schedule_weekday_idx")
+  @@map("availability_weekly_rules")
+}
+
+model AvailabilityDateOverride {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scheduleId String           @map("schedule_id") @db.Uuid
+  localDate  DateTime         @map("local_date") @db.Date
+  kind       DateOverrideKind
+  reason     String?          @db.VarChar(300)
+  version    Int              @default(1)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  schedule  AvailabilitySchedule           @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  intervals AvailabilityOverrideInterval[]
+
+  @@unique([scheduleId, localDate], map: "availability_date_overrides_schedule_date_key")
+  @@index([scheduleId, localDate, kind], map: "availability_date_overrides_schedule_date_kind_idx")
+  @@map("availability_date_overrides")
+}
+
+model AvailabilityOverrideInterval {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  overrideId  String @map("override_id") @db.Uuid
+  startMinute Int    @map("start_minute")
+  endMinute   Int    @map("end_minute")
+
+  override AvailabilityDateOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
+
+  @@index([overrideId, startMinute], map: "availability_override_intervals_override_start_idx")
+  @@map("availability_override_intervals")
+}
+
+model AvailabilitySlot {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId  String             @map("professional_id") @db.Uuid
+  scheduleId      String?            @map("schedule_id") @db.Uuid
+  cityId          String             @map("city_id") @db.Uuid
+  serviceId       String             @map("service_id") @db.Uuid
+  startsAt        DateTime           @map("starts_at") @db.Timestamptz(3)
+  endsAt          DateTime           @map("ends_at") @db.Timestamptz(3)
+  displayTimeZone String             @map("display_time_zone") @db.VarChar(100)
+  status          AvailabilityStatus @default(AVAILABLE)
+  source          AvailabilitySource
+  scheduleVersion Int?               @map("schedule_version")
+  version         Int                @default(1)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  professional ProfessionalProfile   @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  schedule     AvailabilitySchedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  city         City                  @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  service      Service               @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([professionalId, status, startsAt], map: "availability_slots_professional_status_start_idx")
+  @@index([serviceId, cityId, status, startsAt], map: "availability_slots_discovery_idx")
+  @@map("availability_slots")
+}
+
+model AuditEvent {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorType     AuditActorType @map("actor_type")
+  actorUserId   String?        @map("actor_user_id") @db.Uuid
+  actorRole     Role?          @map("actor_role")
+  action        String         @db.VarChar(150)
+  targetType    String         @map("target_type") @db.VarChar(100)
+  targetId      String         @map("target_id") @db.Uuid
+  outcome       AuditOutcome
+  reasonCode    String?        @map("reason_code") @db.VarChar(80)
+  reason        String?        @db.VarChar(500)
+  requestId     String         @map("request_id") @db.VarChar(128)
+  changedFields String[]       @default([]) @map("changed_fields") @db.VarChar(100)
+  beforeState   Json?          @map("before_state")
+  afterState    Json?          @map("after_state")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([targetType, targetId, createdAt], map: "audit_events_target_created_idx")
+  @@index([actorUserId, createdAt], map: "audit_events_actor_created_idx")
+  @@index([action, createdAt], map: "audit_events_action_created_idx")
+  @@map("audit_events")
 }
