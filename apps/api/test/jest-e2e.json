@@ -3,7 +3,23 @@
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
+  "setupFiles": ["<rootDir>/setup-environment.ts"],
+  "moduleNameMapper": {
+    "^@beautyathome/auth$": "<rootDir>/../../../packages/auth/src/index.ts",
+    "^@beautyathome/database$": "<rootDir>/mocks/database.ts",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
+  },
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "CommonJS",
+          "moduleResolution": "Node",
+          "esModuleInterop": true,
+          "resolvePackageJsonExports": false
+        }
+      }
+    ]
   }
 }
