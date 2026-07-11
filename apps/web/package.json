@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@beautyathome/auth": "workspace:*",
+    "@beautyathome/marketplace": "workspace:*",
     "@beautyathome/types": "workspace:*",
     "@beautyathome/ui": "workspace:*",
     "@beautyathome/utils": "workspace:*",

@@ -25,6 +25,7 @@
   "dependencies": {
     "@beautyathome/auth": "workspace:*",
     "@beautyathome/database": "workspace:*",
+    "@beautyathome/marketplace": "workspace:*",
     "@beautyathome/types": "workspace:*",
     "@beautyathome/utils": "workspace:*",
     "@nestjs/common": "^11.0.1",
