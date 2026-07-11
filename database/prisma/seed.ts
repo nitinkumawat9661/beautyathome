@@ -1,5 +1,5 @@
-async function main(): Promise<void> {
+function main(): void {
   console.info('No seed data is defined yet.');
 }
 
-void main();
+main();

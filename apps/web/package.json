@@ -11,6 +11,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@beautyathome/auth": "workspace:*",
     "@beautyathome/types": "workspace:*",
     "@beautyathome/ui": "workspace:*",
     "@beautyathome/utils": "workspace:*",

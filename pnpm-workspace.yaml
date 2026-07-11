@@ -1,6 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+  - 'database'
 
 allowBuilds:
   '@prisma/engines': true

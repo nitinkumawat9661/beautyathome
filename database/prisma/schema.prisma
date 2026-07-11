@@ -1,8 +1,219 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider               = "prisma-client"
+  output                 = "../generated/prisma"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  PROFESSIONAL
+  ADMIN
+  SUPPORT
+  FINANCE
+
+  @@map("role")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+  CLOSED
+
+  @@map("user_status")
+}
+
+enum VerificationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+
+  @@map("verification_status")
+}
+
+enum OtpPurpose {
+  SIGN_IN
+  SIGN_UP
+  STEP_UP
+
+  @@map("otp_purpose")
+}
+
+enum OtpStatus {
+  PENDING
+  CONSUMED
+  EXPIRED
+  LOCKED
+  CANCELLED
+
+  @@map("otp_status")
+}
+
+enum SessionRevocationReason {
+  LOGOUT
+  LOGOUT_ALL
+  TOKEN_REUSE
+  ACCOUNT_STATUS_CHANGED
+  ROLE_CHANGED
+  ADMINISTRATIVE
+
+  @@map("session_revocation_reason")
+}
+
+/// A platform identity. Mobile numbers are normalized to E.164 before the API
+/// creates the encrypted value and deterministic lookup HMAC stored here.
+model User {
+  id                               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mobileNumberCiphertext           String     @map("mobile_number_ciphertext") @db.Text
+  mobileNumberLookupHash           String     @map("mobile_number_lookup_hash") @db.Char(64)
+  mobileNumberEncryptionKeyVersion String     @map("mobile_number_encryption_key_version") @db.VarChar(64)
+  mobileVerifiedAt                 DateTime   @map("mobile_verified_at") @db.Timestamptz(3)
+  status                           UserStatus @default(ACTIVE)
+  createdAt                        DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                        DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt                        DateTime?  @map("deleted_at") @db.Timestamptz(3)
+
+  roles               UserRole[]
+  customerProfile     CustomerProfile?
+  professionalProfile ProfessionalProfile?
+  adminProfile        AdminProfile?
+  otpChallenges       OtpChallenge[]
+  authSessions        AuthSession[]
+
+  @@index([mobileNumberLookupHash], map: "users_mobile_number_lookup_hash_idx")
+  @@index([status, deletedAt], map: "users_status_deleted_at_idx")
+  @@index([createdAt], map: "users_created_at_idx")
+  @@map("users")
+}
+
+/// Current role grants. Security-sensitive grant and revoke operations also
+/// produce immutable audit events when that module is introduced.
+model UserRole {
+  userId    String   @map("user_id") @db.Uuid
+  role      Role
+  grantedAt DateTime @default(now()) @map("granted_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role], map: "user_roles_pkey")
+  @@index([role, grantedAt], map: "user_roles_role_granted_at_idx")
+  @@map("user_roles")
+}
+
+model CustomerProfile {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @unique(map: "customer_profiles_user_id_key") @map("user_id") @db.Uuid
+  displayName String?  @map("display_name") @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("customer_profiles")
+}
+
+model ProfessionalProfile {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String             @unique(map: "professional_profiles_user_id_key") @map("user_id") @db.Uuid
+  displayName        String?            @map("display_name") @db.VarChar(100)
+  biography          String?            @db.VarChar(1000)
+  experienceYears    Int?               @map("experience_years")
+  verificationStatus VerificationStatus @default(DRAFT) @map("verification_status")
+  isServiceActive    Boolean            @default(false) @map("is_service_active")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([verificationStatus, isServiceActive], map: "professional_profiles_discovery_status_idx")
+  @@map("professional_profiles")
+}
+
+/// Staff-facing profile data is separate from role grants. SUPPORT and FINANCE
+/// remain least-privilege roles and do not receive implicit ADMIN authority.
+model AdminProfile {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @unique(map: "admin_profiles_user_id_key") @map("user_id") @db.Uuid
+  displayName String?  @map("display_name") @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_profiles")
+}
+
+/// Authentication challenges store only keyed digests. The requested role is
+/// part of the challenge context so verification cannot be replayed into a
+/// different customer, Professional, or staff authorization context.
+model OtpChallenge {
+  id                    String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String?    @map("user_id") @db.Uuid
+  purpose               OtpPurpose
+  requestedRole         Role       @map("requested_role")
+  status                OtpStatus  @default(PENDING)
+  destinationLookupHash String     @map("destination_lookup_hash") @db.Char(64)
+  codeDigest            String     @map("code_digest") @db.Char(64)
+  providerReference     String?    @map("provider_reference") @db.VarChar(255)
+  attemptCount          Int        @default(0) @map("attempt_count")
+  maxAttempts           Int        @map("max_attempts")
+  requestIpHash         String?    @map("request_ip_hash") @db.Char(64)
+  deviceFingerprintHash String?    @map("device_fingerprint_hash") @db.Char(64)
+  userAgentHash         String?    @map("user_agent_hash") @db.Char(64)
+  expiresAt             DateTime   @map("expires_at") @db.Timestamptz(3)
+  consumedAt            DateTime?  @map("consumed_at") @db.Timestamptz(3)
+  lastAttemptAt         DateTime?  @map("last_attempt_at") @db.Timestamptz(3)
+  createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([destinationLookupHash, purpose, requestedRole, status, createdAt], map: "otp_challenges_context_idx")
+  @@index([userId, createdAt], map: "otp_challenges_user_created_at_idx")
+  @@index([status, expiresAt], map: "otp_challenges_status_expires_at_idx")
+  @@index([providerReference], map: "otp_challenges_provider_reference_idx")
+  @@map("otp_challenges")
+}
+
+/// Each record represents one opaque refresh-token generation. `familyId` is
+/// the stable session/JWT `sid`; `previousSessionId` creates a linear rotation
+/// chain while retaining old hashes for token-reuse detection.
+model AuthSession {
+  id                    String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String                   @map("user_id") @db.Uuid
+  familyId              String                   @default(dbgenerated("gen_random_uuid()")) @map("family_id") @db.Uuid
+  activeRole            Role                     @map("active_role")
+  previousSessionId     String?                  @unique(map: "auth_sessions_previous_session_id_key") @map("previous_session_id") @db.Uuid
+  refreshTokenHash      String                   @unique(map: "auth_sessions_refresh_token_hash_key") @map("refresh_token_hash") @db.Char(64)
+  deviceFingerprintHash String?                  @map("device_fingerprint_hash") @db.Char(64)
+  deviceName            String?                  @map("device_name") @db.VarChar(120)
+  userAgentHash         String?                  @map("user_agent_hash") @db.Char(64)
+  createdIpHash         String?                  @map("created_ip_hash") @db.Char(64)
+  lastIpHash            String?                  @map("last_ip_hash") @db.Char(64)
+  expiresAt             DateTime                 @map("expires_at") @db.Timestamptz(3)
+  lastUsedAt            DateTime?                @map("last_used_at") @db.Timestamptz(3)
+  lastStepUpAt          DateTime?                @map("last_step_up_at") @db.Timestamptz(3)
+  rotatedAt             DateTime?                @map("rotated_at") @db.Timestamptz(3)
+  revokedAt             DateTime?                @map("revoked_at") @db.Timestamptz(3)
+  revocationReason      SessionRevocationReason? @map("revocation_reason")
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  previousSession AuthSession? @relation("AuthSessionRotation", fields: [previousSessionId], references: [id], onDelete: SetNull)
+  nextSession     AuthSession? @relation("AuthSessionRotation")
+
+  @@index([userId, revokedAt, expiresAt], map: "auth_sessions_user_active_idx")
+  @@index([familyId, createdAt], map: "auth_sessions_family_created_at_idx")
+  @@index([expiresAt], map: "auth_sessions_expires_at_idx")
+  @@map("auth_sessions")
 }
