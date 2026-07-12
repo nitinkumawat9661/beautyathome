@@ -36,17 +36,29 @@ export function SiteHeader() {
         <Link className="font-semibold tracking-tight" href="/">
           BeautyAtHome
         </Link>
-        <nav aria-label="Account" className="flex items-center gap-3 text-sm">
+        <nav aria-label="Account" className="flex flex-wrap items-center justify-end gap-3 text-sm">
+          <Link
+            className="rounded px-2 py-2 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900"
+            href="/services"
+          >
+            Browse services
+          </Link>
           {session.status === 'authenticated' && session.principal ? (
             <>
               <Link
                 className="rounded px-2 py-2 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900"
-                href="/profile"
+                href={
+                  session.principal.activeRole === 'PROFESSIONAL'
+                    ? '/professional'
+                    : ['ADMIN', 'SUPPORT', 'FINANCE'].includes(session.principal.activeRole)
+                      ? '/admin'
+                      : '/profile'
+                }
               >
                 {session.principal.activeRole === 'PROFESSIONAL'
-                  ? 'Professional profile'
+                  ? 'Professional workspace'
                   : ['ADMIN', 'SUPPORT', 'FINANCE'].includes(session.principal.activeRole)
-                    ? 'Staff profile'
+                    ? 'Admin workspace'
                     : 'My profile'}
               </Link>
               <Button

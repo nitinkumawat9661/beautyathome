@@ -164,6 +164,14 @@ async function unauthenticatedRequest<T>(
   return parseSuccess(response, parse);
 }
 
+export function publicJsonRequest<T>(
+  path: string,
+  init: RequestInit,
+  parse: ResponseParser<T>,
+): Promise<T> {
+  return unauthenticatedRequest(path, init, parse);
+}
+
 let refreshPromise: Promise<OtpVerifyResponse> | null = null;
 
 type AuthChannelMessage =

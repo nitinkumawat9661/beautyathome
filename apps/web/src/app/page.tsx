@@ -17,6 +17,12 @@ export default function Home() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
             className="inline-flex min-h-12 items-center justify-center rounded-md bg-zinc-950 px-5 font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
+            href="/services"
+          >
+            Browse beauty services
+          </Link>
+          <Link
+            className="inline-flex min-h-12 items-center justify-center rounded-md border border-zinc-300 px-5 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
             href="/auth"
           >
             Customer or professional access

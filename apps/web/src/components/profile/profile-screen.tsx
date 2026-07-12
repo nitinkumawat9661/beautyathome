@@ -5,6 +5,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import { Button } from '@beautyathome/ui';
 import { isOperationalRole } from '@beautyathome/auth';
+import type { PublicServiceArea } from '@beautyathome/marketplace';
 
 import { useAuthSession } from '@/components/auth-provider';
 import {
@@ -20,6 +21,7 @@ import {
   patchProfessionalProfile,
   type ProfessionalProfileView,
 } from '@/lib/api/profile-client';
+import { listCities, listServiceAreas } from '@/lib/api/marketplace-client';
 
 function nullableTrimmed(value: string): string | null {
   const trimmed = value.trim();
@@ -40,6 +42,11 @@ export function ProfileScreen() {
   const [displayName, setDisplayName] = useState('');
   const [biography, setBiography] = useState('');
   const [experienceYears, setExperienceYears] = useState('');
+  const [languageCodes, setLanguageCodes] = useState('hi, en');
+  const [availableServiceAreas, setAvailableServiceAreas] = useState<PublicServiceArea[]>([]);
+  const [selectedServiceAreaIds, setSelectedServiceAreaIds] = useState<PublicServiceArea['id'][]>(
+    [],
+  );
   const [professionalProfile, setProfessionalProfile] = useState<ProfessionalProfileView | null>(
     null,
   );
@@ -81,6 +88,14 @@ export function ProfileScreen() {
             setDisplayName(profile.displayName ?? '');
             setBiography(profile.biography ?? '');
             setExperienceYears(profile.experienceYears?.toString() ?? '');
+            setLanguageCodes(profile.languageCodes.join(', '));
+            setSelectedServiceAreaIds(profile.serviceAreas.map((area) => area.id));
+            const cities = await listCities(abortController.signal);
+            const initialCity = cities.data[0];
+            if (initialCity) {
+              const areas = await listServiceAreas(initialCity.id, abortController.signal);
+              setAvailableServiceAreas(areas.data);
+            }
             setProfileLoaded(true);
           }
         } else if (isOperationalRole(principal.activeRole)) {
@@ -138,6 +153,10 @@ export function ProfileScreen() {
 
     try {
       if (session.principal.activeRole === 'PROFESSIONAL') {
+        if (!professionalProfile) {
+          setErrorMessage('Reload the Professional profile before saving changes.');
+          return;
+        }
         const nextBiography = nullableTrimmed(biography);
         if (nextBiography !== null && nextBiography.length > 1000) {
           setErrorMessage('Biography must be 1,000 characters or fewer.');
@@ -154,11 +173,22 @@ export function ProfileScreen() {
           setErrorMessage('Experience must be a whole number from 0 to 80.');
           return;
         }
+        const nextLanguageCodes = languageCodes
+          .split(',')
+          .map((code) => code.trim())
+          .filter(Boolean);
+        if (nextLanguageCodes.length === 0 || selectedServiceAreaIds.length === 0) {
+          setErrorMessage('Add at least one language and select at least one service area.');
+          return;
+        }
 
         const profile = await patchProfessionalProfile({
           displayName: nextDisplayName,
           biography: nextBiography,
           experienceYears: nextExperienceYears,
+          languageCodes: nextLanguageCodes,
+          serviceAreaIds: selectedServiceAreaIds,
+          expectedVersion: professionalProfile.version,
         });
         setProfessionalProfile(profile);
       } else if (isOperationalRole(session.principal.activeRole)) {
@@ -367,6 +397,50 @@ export function ProfileScreen() {
                   value={experienceYears}
                 />
               </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium" htmlFor="languageCodes">
+                  Languages
+                </label>
+                <input
+                  className="min-h-12 w-full rounded-md border border-zinc-300 bg-transparent px-3 dark:border-zinc-700"
+                  disabled={!canEditProfile || isSaving}
+                  id="languageCodes"
+                  onChange={(event) => setLanguageCodes(event.target.value)}
+                  placeholder="hi, en"
+                  value={languageCodes}
+                />
+                <p className="mt-2 text-xs text-zinc-600">Use comma-separated language codes.</p>
+              </div>
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium">Service areas</legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {availableServiceAreas.map((area) => (
+                    <label
+                      className="flex min-h-11 items-center gap-3 rounded-md border px-3"
+                      key={area.id}
+                    >
+                      <input
+                        checked={selectedServiceAreaIds.includes(area.id)}
+                        disabled={!canEditProfile || isSaving}
+                        onChange={(event) =>
+                          setSelectedServiceAreaIds((current) =>
+                            event.target.checked
+                              ? [...current, area.id]
+                              : current.filter((id) => id !== area.id),
+                          )
+                        }
+                        type="checkbox"
+                      />
+                      <span>{area.name}</span>
+                    </label>
+                  ))}
+                </div>
+                {availableServiceAreas.length === 0 ? (
+                  <p className="text-sm text-zinc-600">
+                    No active service areas are currently available.
+                  </p>
+                ) : null}
+              </fieldset>
             </>
           ) : null}
 

@@ -1,30 +1,31 @@
+import { StaffProfileViewSchema, type StaffProfileView } from '@beautyathome/auth';
 import {
-  ProfessionalProfileViewSchema,
-  StaffProfileViewSchema,
+  ProfessionalOwnProfileSchema,
+  ProfessionalProfileUpdateSchema,
+  type ProfessionalOwnProfile,
   type ProfessionalProfileUpdate,
-  type ProfessionalProfileView,
-  type StaffProfileView,
-} from '@beautyathome/auth';
+} from '@beautyathome/marketplace';
 
 import { authenticatedJsonRequest } from '@/lib/api/api-client';
 
 export type AdminProfileView = StaffProfileView;
 export type ProfessionalProfilePatch = ProfessionalProfileUpdate;
-export type { ProfessionalProfileView };
+export type ProfessionalProfileView = ProfessionalOwnProfile;
 
 export function getProfessionalProfile(signal?: AbortSignal): Promise<ProfessionalProfileView> {
   return authenticatedJsonRequest('/professional/profile', { method: 'GET', signal }, (value) =>
-    ProfessionalProfileViewSchema.parse(value),
+    ProfessionalOwnProfileSchema.parse(value),
   );
 }
 
 export function patchProfessionalProfile(
   payload: ProfessionalProfilePatch,
 ): Promise<ProfessionalProfileView> {
+  const body = ProfessionalProfileUpdateSchema.parse(payload);
   return authenticatedJsonRequest(
     '/professional/profile',
-    { method: 'PATCH', body: JSON.stringify(payload) },
-    (value) => ProfessionalProfileViewSchema.parse(value),
+    { method: 'PATCH', body: JSON.stringify(body) },
+    (value) => ProfessionalOwnProfileSchema.parse(value),
   );
 }
 
