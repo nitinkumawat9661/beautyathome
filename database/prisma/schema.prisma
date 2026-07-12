@@ -748,14 +748,38 @@ model VerificationApplication {
   createdAt                            DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                            DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  professional ProfessionalProfile         @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-  reviewedBy   User?                       @relation("VerificationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  professional ProfessionalProfile            @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  reviewedBy   User?                          @relation("VerificationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   notes        VerificationNote[]
   history      VerificationStatusHistory[]
+  evidence     VerificationEvidenceSnapshot[]
 
   @@unique([professionalId, version], map: "verification_applications_professional_version_key")
   @@index([status, submittedAt], map: "verification_applications_status_submitted_idx")
   @@map("verification_applications")
+}
+
+/// Immutable metadata snapshot of the certificate evidence selected when a
+/// Professional submits a verification application. The source certificate
+/// may later be replaced without changing the evidence reviewed by Admin.
+model VerificationEvidenceSnapshot {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicationId       String                @map("application_id") @db.Uuid
+  sourceCertificateId String                @map("source_certificate_id") @db.Uuid
+  uploadId            String                @map("upload_id") @db.Uuid
+  title               String                @db.VarChar(120)
+  issuer              String                @db.VarChar(120)
+  issuedOn            DateTime              @map("issued_on") @db.Date
+  expiresOn           DateTime?             @map("expires_on") @db.Date
+  moderationStatus    MediaModerationStatus @map("moderation_status")
+  privateObjectKey    String?               @map("private_object_key") @db.Text
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  application VerificationApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, sourceCertificateId], map: "verification_evidence_application_certificate_key")
+  @@index([applicationId, createdAt], map: "verification_evidence_application_created_idx")
+  @@map("verification_evidence_snapshots")
 }
 
 model VerificationNote {
