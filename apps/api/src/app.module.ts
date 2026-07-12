@@ -20,6 +20,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AvailabilityModule } from './availability/availability.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { CommerceModule } from './commerce/commerce.module';
 import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
 import { MarketplaceCommonModule } from './common/marketplace-common.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
@@ -46,6 +47,7 @@ import { UsersModule } from './users/users.module';
     AuditModule,
     AuthModule,
     CatalogModule,
+    CommerceModule,
     ProfessionalServicesModule,
     ProfessionalsModule,
     AvailabilityModule,

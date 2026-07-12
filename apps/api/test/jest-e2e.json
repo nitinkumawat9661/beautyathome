@@ -6,6 +6,7 @@
   "setupFiles": ["<rootDir>/setup-environment.ts"],
   "moduleNameMapper": {
     "^@beautyathome/auth$": "<rootDir>/../../../packages/auth/src/index.ts",
+    "^@beautyathome/booking$": "<rootDir>/../../../packages/booking/src/index.ts",
     "^@beautyathome/database$": "<rootDir>/mocks/database.ts",
     "^@beautyathome/marketplace$": "<rootDir>/../../../packages/marketplace/src/index.ts",
     "^(\\.{1,2}/.*)\\.js$": "$1"

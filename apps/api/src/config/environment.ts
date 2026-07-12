@@ -67,6 +67,7 @@ const environmentSchema = z
     SESSION_TOKEN_SECRET: z.string().min(32),
     PII_LOOKUP_SECRET: z.string().min(32),
     REQUEST_CONTEXT_SECRET: z.string().min(32),
+    PAYMENT_MOCK_SECRET: z.string().min(32).optional(),
     PII_ENCRYPTION_KEY_BASE64: z.string().min(1),
     PII_ENCRYPTION_KEY_VERSION: z.string().trim().min(1).max(64).default('v1'),
     PROFESSIONAL_ELIGIBILITY_POLICY_VERSION: z

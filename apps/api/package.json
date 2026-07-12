@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@beautyathome/auth": "workspace:*",
+    "@beautyathome/booking": "workspace:*",
     "@beautyathome/database": "workspace:*",
     "@beautyathome/marketplace": "workspace:*",
     "@beautyathome/types": "workspace:*",
@@ -93,6 +94,7 @@
     },
     "moduleNameMapper": {
       "^@beautyathome/auth$": "<rootDir>/../../../packages/auth/src/index.ts",
+      "^@beautyathome/booking$": "<rootDir>/../../../packages/booking/src/index.ts",
       "^@beautyathome/database$": "<rootDir>/../test/mocks/database.ts",
       "^@beautyathome/marketplace$": "<rootDir>/../../../packages/marketplace/src/index.ts",
       "^(\\.{1,2}/.*)\\.js$": "$1"

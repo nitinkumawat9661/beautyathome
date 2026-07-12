@@ -57,7 +57,7 @@ export const AssignmentModeSchema = z.enum(['SELECTED_PROFESSIONAL', 'BEST_AVAIL
 export const BookingIdSchema = z.string().uuid().brand<'BookingId'>();
 export const IdempotencyKeySchema = z.string().trim().min(16).max(128);
 
-export const BookingCreateSchema = z
+export const BookingCreateCoreSchema = z
   .object({
     serviceId: z.string().uuid(),
     cityId: z.string().uuid(),
@@ -66,20 +66,27 @@ export const BookingCreateSchema = z
     availabilitySlotId: z.string().uuid(),
     assignmentMode: AssignmentModeSchema,
     selectedProfessionalId: z.string().uuid().optional(),
-    idempotencyKey: IdempotencyKeySchema,
   })
-  .strict()
-  .superRefine((value, context) => {
-    if (
-      (value.assignmentMode === 'SELECTED_PROFESSIONAL') !==
-      Boolean(value.selectedProfessionalId)
-    )
-      context.addIssue({
-        code: 'custom',
-        path: ['selectedProfessionalId'],
-        message: 'Selected assignment requires exactly one Professional',
-      });
-  });
+  .strict();
+
+export const BookingCreateRequestSchema = BookingCreateCoreSchema.superRefine((value, context) => {
+  if ((value.assignmentMode === 'SELECTED_PROFESSIONAL') !== Boolean(value.selectedProfessionalId))
+    context.addIssue({
+      code: 'custom',
+      path: ['selectedProfessionalId'],
+      message: 'Selected assignment requires exactly one Professional',
+    });
+});
+export const BookingCreateSchema = BookingCreateCoreSchema.extend({
+  idempotencyKey: IdempotencyKeySchema,
+}).superRefine((value, context) => {
+  if ((value.assignmentMode === 'SELECTED_PROFESSIONAL') !== Boolean(value.selectedProfessionalId))
+    context.addIssue({
+      code: 'custom',
+      path: ['selectedProfessionalId'],
+      message: 'Selected assignment requires exactly one Professional',
+    });
+});
 
 export const BookingTransitionSchema = z
   .object({
@@ -230,6 +237,51 @@ export const ReviewCreateSchema = z
     comment: z.string().trim().max(2000).optional(),
   })
   .strict();
+export const BookingViewSchema = z
+  .object({
+    id: z.string().uuid(),
+    status: BookingStatusSchema,
+    assignmentMode: AssignmentModeSchema,
+    serviceNameSnapshot: z.string().min(1),
+    assignedProfessionalId: z.string().uuid().nullable(),
+    scheduledStart: z.coerce.date(),
+    scheduledEnd: z.coerce.date(),
+    servicePricePaise: PaiseSchema,
+    platformFeePaise: PaiseSchema,
+    discountPaise: PaiseSchema,
+    rewardPaise: PaiseSchema,
+    taxPaise: PaiseSchema,
+    totalPaise: PaiseSchema,
+    advancePaise: PaiseSchema,
+    remainingPaise: PaiseSchema,
+    version: z.number().int().positive(),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
+  })
+  .passthrough();
+export const BookingListSchema = z.array(BookingViewSchema);
+export const WalletViewSchema = z
+  .object({
+    pendingPaise: z.number().int(),
+    availablePaise: z.number().int(),
+    entries: z.array(
+      z
+        .object({
+          id: z.string().uuid(),
+          entryType: z.string(),
+          direction: z.enum(['CREDIT', 'DEBIT']),
+          state: z.enum(['PENDING', 'AVAILABLE', 'RESERVED', 'SETTLED', 'REVERSED']),
+          amountPaise: PaiseSchema,
+          availableAt: z.coerce.date().nullable(),
+          createdAt: z.coerce.date(),
+        })
+        .passthrough(),
+    ),
+  })
+  .strict();
+export const CommerceRecordListSchema = z.array(z.record(z.string(), z.unknown()));
+export type BookingView = z.infer<typeof BookingViewSchema>;
+export type WalletView = z.infer<typeof WalletViewSchema>;
 export const ReminderCreateSchema = z.discriminatedUnion('schedule', [
   z.object({ schedule: z.enum(['DAYS_15', 'DAYS_30', 'DAYS_45']) }).strict(),
   z.object({ schedule: z.literal('CUSTOM'), remindAt: z.string().datetime() }).strict(),

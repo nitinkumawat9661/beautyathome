@@ -1,5 +1,85 @@
 export class PrismaClient {}
 
+export const BookingStatus = {
+  DRAFT: 'DRAFT',
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  REQUESTED: 'REQUESTED',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  CONFIRMED: 'CONFIRMED',
+  EN_ROUTE: 'EN_ROUTE',
+  ARRIVED: 'ARRIVED',
+  START_OTP_PENDING: 'START_OTP_PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETION_OTP_PENDING: 'COMPLETION_OTP_PENDING',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  REFUND_PENDING: 'REFUND_PENDING',
+  REFUNDED: 'REFUNDED',
+  DISPUTED: 'DISPUTED',
+  NO_SHOW: 'NO_SHOW',
+} as const;
+export const AssignmentStatus = {
+  OFFERED: 'OFFERED',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+} as const;
+export const PaymentStatus = {
+  CREATED: 'CREATED',
+  PENDING: 'PENDING',
+  CAPTURED: 'CAPTURED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
+  REFUNDED: 'REFUNDED',
+} as const;
+export const PaymentAttemptStatus = {
+  CREATED: 'CREATED',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  TIMED_OUT: 'TIMED_OUT',
+} as const;
+export const RefundStatus = {
+  REQUESTED: 'REQUESTED',
+  PROCESSING: 'PROCESSING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+} as const;
+export const ServiceOtpPurpose = {
+  START: 'START',
+  COMPLETION: 'COMPLETION',
+} as const;
+export const ServiceOtpStatus = {
+  ACTIVE: 'ACTIVE',
+  CONSUMED: 'CONSUMED',
+  EXPIRED: 'EXPIRED',
+  LOCKED: 'LOCKED',
+  REVOKED: 'REVOKED',
+} as const;
+export const WalletEntryDirection = {
+  CREDIT: 'CREDIT',
+  DEBIT: 'DEBIT',
+} as const;
+export const WalletEntryState = {
+  PENDING: 'PENDING',
+  AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
+  SETTLED: 'SETTLED',
+  REVERSED: 'REVERSED',
+} as const;
+export const WithdrawalStatus = {
+  REQUESTED: 'REQUESTED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  PROCESSING: 'PROCESSING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
 export const OtpStatus = {
   PENDING: 'PENDING',
   CONSUMED: 'CONSUMED',
