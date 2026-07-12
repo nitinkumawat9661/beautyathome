@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
+import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AccessTokenGuard } from './auth/guards/access-token.guard';
 import { AccountStatusGuard } from './auth/guards/account-status.guard';
@@ -17,10 +18,15 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { RecentStepUpGuard } from './auth/guards/recent-step-up.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AvailabilityModule } from './availability/availability.module';
+import { CatalogModule } from './catalog/catalog.module';
 import { SensitiveResponseInterceptor } from './common/interceptors/sensitive-response.interceptor';
+import { MarketplaceCommonModule } from './common/marketplace-common.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
+import { ProfessionalServicesModule } from './professional-services/professional-services.module';
+import { ProfessionalsModule } from './professionals/professionals.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -36,7 +42,13 @@ import { UsersModule } from './users/users.module';
     }),
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     DatabaseModule,
+    MarketplaceCommonModule,
+    AuditModule,
     AuthModule,
+    CatalogModule,
+    ProfessionalServicesModule,
+    ProfessionalsModule,
+    AvailabilityModule,
     UsersModule,
   ],
   controllers: [AppController],

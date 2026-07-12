@@ -33,7 +33,7 @@ function createFixture(): {
       type: 'spki',
     })
     .toString();
-  const environment = {
+  const environment: Environment = {
     NODE_ENV: 'test',
     API_PORT: 4000,
     DATABASE_URL: 'postgresql://unused',
@@ -62,7 +62,7 @@ function createFixture(): {
     REQUEST_CONTEXT_SECRET: 'request-context-secret-that-is-unique-0004',
     PII_ENCRYPTION_KEY_BASE64: randomBytes(32).toString('base64'),
     PII_ENCRYPTION_KEY_VERSION: 'test-v1',
-  } satisfies Environment;
+  };
   const config = {
     get: jest.fn((name: keyof Environment) => environment[name]),
   } as unknown as ConfigService<Environment, true>;

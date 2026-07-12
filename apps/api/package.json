@@ -79,7 +79,23 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "module": "CommonJS",
+            "moduleResolution": "Node",
+            "esModuleInterop": true,
+            "resolvePackageJsonExports": false
+          }
+        }
+      ]
+    },
+    "moduleNameMapper": {
+      "^@beautyathome/auth$": "<rootDir>/../../../packages/auth/src/index.ts",
+      "^@beautyathome/database$": "<rootDir>/../test/mocks/database.ts",
+      "^@beautyathome/marketplace$": "<rootDir>/../../../packages/marketplace/src/index.ts",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

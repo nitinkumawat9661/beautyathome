@@ -69,6 +69,12 @@ const environmentSchema = z
     REQUEST_CONTEXT_SECRET: z.string().min(32),
     PII_ENCRYPTION_KEY_BASE64: z.string().min(1),
     PII_ENCRYPTION_KEY_VERSION: z.string().trim().min(1).max(64).default('v1'),
+    PROFESSIONAL_ELIGIBILITY_POLICY_VERSION: z
+      .string()
+      .trim()
+      .min(1)
+      .max(100)
+      .optional(),
   })
   .superRefine((environment, context) => {
     const origins = parseCorsOrigins(environment.CORS_ORIGINS);

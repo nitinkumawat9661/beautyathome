@@ -7,7 +7,6 @@ import { PrismaService } from '../database/prisma/prisma.service';
 import type {
   AdminProfileUpdate,
   CustomerProfileUpdate,
-  ProfessionalProfileUpdate,
 } from './users.validation';
 
 @Injectable()
@@ -35,43 +34,6 @@ export class UsersService {
         role: 'CUSTOMER' as const,
         displayName: profile.displayName,
         profileComplete: Boolean(profile.displayName),
-      };
-    } catch (error) {
-      this.translateMissingProfile(error);
-    }
-  }
-
-  async getProfessionalProfile(actor: AuthenticatedActor) {
-    const profile = await this.prisma.professionalProfile.findUnique({
-      where: { userId: actor.userId },
-    });
-    if (!profile) this.throwProfileNotFound();
-    return {
-      id: profile.id,
-      displayName: profile.displayName,
-      biography: profile.biography,
-      experienceYears: profile.experienceYears,
-      verificationStatus: profile.verificationStatus,
-      isServiceActive: profile.isServiceActive,
-    };
-  }
-
-  async updateProfessionalProfile(
-    actor: AuthenticatedActor,
-    input: ProfessionalProfileUpdate,
-  ) {
-    try {
-      const profile = await this.prisma.professionalProfile.update({
-        where: { userId: actor.userId },
-        data: input,
-      });
-      return {
-        id: profile.id,
-        displayName: profile.displayName,
-        biography: profile.biography,
-        experienceYears: profile.experienceYears,
-        verificationStatus: profile.verificationStatus,
-        isServiceActive: profile.isServiceActive,
       };
     } catch (error) {
       this.translateMissingProfile(error);

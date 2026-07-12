@@ -176,6 +176,13 @@ export const MasterServiceCreateSchema = z
         message: 'Image uploads must be unique',
       });
     }
+    if (!hasUniqueValues(service.images.map((image) => image.displayOrder))) {
+      context.addIssue({
+        code: 'custom',
+        path: ['images'],
+        message: 'Image display positions must be unique',
+      });
+    }
     if (!hasUniqueValues(service.cityPolicies.map((policy) => policy.cityId))) {
       context.addIssue({
         code: 'custom',
@@ -196,7 +203,20 @@ export const MasterServiceUpdateSchema = z
     expectedVersion: VersionSchema,
   })
   .strict()
-  .refine(hasMutableField, 'At least one service field is required');
+  .refine(hasMutableField, 'At least one service field is required')
+  .superRefine((service, context) => {
+    if (
+      service.images &&
+      (!hasUniqueValues(service.images.map((image) => image.uploadId)) ||
+        !hasUniqueValues(service.images.map((image) => image.displayOrder)))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['images'],
+        message: 'Image uploads and display positions must be unique',
+      });
+    }
+  });
 
 export const MasterServiceStatusChangeSchema = z
   .object({
@@ -361,6 +381,8 @@ export const ServiceRequestListQuerySchema = z
 
 export const PublicServiceCategoryPageSchema = createCursorPageSchema(PublicServiceCategorySchema);
 export const PublicMasterServicePageSchema = createCursorPageSchema(PublicMasterServiceSchema);
+export const AdminServiceCategoryPageSchema = createCursorPageSchema(AdminServiceCategorySchema);
+export const AdminMasterServicePageSchema = createCursorPageSchema(AdminMasterServiceSchema);
 export const ProfessionalServiceRequestPageSchema = createCursorPageSchema(
   ProfessionalServiceRequestSchema,
 );
@@ -381,11 +403,24 @@ export function isPriceWithinPolicy(
 }
 
 export type ServiceCategoryStatus = z.infer<typeof ServiceCategoryStatusSchema>;
+export type PublicServiceCategory = z.infer<typeof PublicServiceCategorySchema>;
 export type MasterServiceStatus = z.infer<typeof MasterServiceStatusSchema>;
 export type ServiceCityPricePolicy = z.infer<typeof ServiceCityPricePolicySchema>;
 export type MasterServiceCreate = z.infer<typeof MasterServiceCreateSchema>;
 export type PublicMasterService = z.infer<typeof PublicMasterServiceSchema>;
+export type AdminMasterService = z.infer<typeof AdminMasterServiceSchema>;
+export type AdminServiceRequest = z.infer<typeof AdminServiceRequestSchema>;
 export type ProfessionalServiceRequestCreate = z.infer<
   typeof ProfessionalServiceRequestCreateSchema
 >;
 export type AdminServiceRequestDecision = z.infer<typeof AdminServiceRequestDecisionSchema>;
+export type PublicServiceListQuery = z.infer<typeof PublicServiceListQuerySchema>;
+export type AdminServiceListQuery = z.infer<typeof AdminServiceListQuerySchema>;
+export type MasterServiceUpdate = z.infer<typeof MasterServiceUpdateSchema>;
+export type MasterServiceStatusChange = z.infer<typeof MasterServiceStatusChangeSchema>;
+export type ServiceCategoryCreate = z.infer<typeof ServiceCategoryCreateSchema>;
+export type ServiceCategoryUpdate = z.infer<typeof ServiceCategoryUpdateSchema>;
+export type ServiceCategoryStatusChange = z.infer<typeof ServiceCategoryStatusChangeSchema>;
+export type ServicePricePolicyCreate = z.infer<typeof ServicePricePolicyCreateSchema>;
+export type ServiceRequestListQuery = z.infer<typeof ServiceRequestListQuerySchema>;
+export type ServiceRequestStartReview = z.infer<typeof ServiceRequestStartReviewSchema>;

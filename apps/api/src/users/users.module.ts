@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { ProfessionalsModule } from '../professionals/professionals.module';
 import { AuthModule } from '../auth/auth.module';
 import {
   AdminProfileController,
@@ -9,7 +10,7 @@ import {
 import { UsersService } from './users.service';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, ProfessionalsModule],
   controllers: [
     MeController,
     ProfessionalProfileController,

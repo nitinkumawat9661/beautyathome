@@ -92,6 +92,14 @@ export const ServiceAreaUpdateSchema = z
   .strict()
   .refine(hasMutableField, 'At least one service-area field is required');
 
+export const ServiceAreaStatusChangeSchema = z
+  .object({
+    action: z.enum(['ACTIVATE', 'DEACTIVATE']),
+    reasonCode: z.string().trim().min(2).max(80),
+    expectedVersion: VersionSchema,
+  })
+  .strict();
+
 export const PublicCityPageSchema = createCursorPageSchema(PublicCitySchema);
 export const PublicServiceAreaPageSchema = createCursorPageSchema(PublicServiceAreaSchema);
 
@@ -102,3 +110,5 @@ export type CityCreate = z.infer<typeof CityCreateSchema>;
 export type CityUpdate = z.infer<typeof CityUpdateSchema>;
 export type PublicServiceArea = z.infer<typeof PublicServiceAreaSchema>;
 export type ServiceAreaCreate = z.infer<typeof ServiceAreaCreateSchema>;
+export type ServiceAreaUpdate = z.infer<typeof ServiceAreaUpdateSchema>;
+export type ServiceAreaStatusChange = z.infer<typeof ServiceAreaStatusChangeSchema>;

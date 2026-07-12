@@ -32,6 +32,12 @@ export const AdminAuditEventSummarySchema = z
   })
   .strict();
 
+export const AdminAuditEventDetailSchema = AdminAuditEventSummarySchema.extend({
+  reason: z.string().trim().min(1).max(500).nullable(),
+  beforeState: z.record(z.string(), z.unknown()).nullable(),
+  afterState: z.record(z.string(), z.unknown()).nullable(),
+}).strict();
+
 export const AdminAuditListQuerySchema = z
   .object({
     actorId: z.string().uuid().optional(),
@@ -59,4 +65,5 @@ export const AdminAuditListQuerySchema = z
 export const AdminAuditEventPageSchema = createCursorPageSchema(AdminAuditEventSummarySchema);
 
 export type AdminAuditEventSummary = z.infer<typeof AdminAuditEventSummarySchema>;
+export type AdminAuditEventDetail = z.infer<typeof AdminAuditEventDetailSchema>;
 export type AdminAuditListQuery = z.infer<typeof AdminAuditListQuerySchema>;

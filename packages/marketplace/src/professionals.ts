@@ -55,6 +55,8 @@ export const LaunchEligibilityStatusSchema = z.enum(LAUNCH_ELIGIBILITY_STATUSES)
 export const VerificationApplicationStatusSchema = z.enum(VERIFICATION_APPLICATION_STATUSES);
 export const ProfessionalSortSchema = z.enum(PROFESSIONAL_SORTS);
 
+export const ProfessionalDisplayNameSchema = NameSchema.pipe(z.string().max(100));
+
 export const LanguageCodeSchema = z
   .string()
   .trim()
@@ -120,10 +122,10 @@ export const ProfessionalCertificateSchema = z
 
 export const ProfessionalProfileUpdateSchema = z
   .object({
-    displayName: NameSchema.optional(),
+    displayName: ProfessionalDisplayNameSchema.nullable().optional(),
     profileImageUploadId: UploadIdSchema.nullable().optional(),
     biography: DescriptionSchema.nullable().optional(),
-    experienceYears: z.number().int().min(0).max(80).optional(),
+    experienceYears: z.number().int().min(0).max(80).nullable().optional(),
     languageCodes: z
       .array(LanguageCodeSchema)
       .min(1)
@@ -152,7 +154,11 @@ export const ProfessionalPortfolioUpdateSchema = z
       ),
     expectedVersion: VersionSchema,
   })
-  .strict();
+  .strict()
+  .refine(
+    (input) => hasUniqueValues(input.items.map((item) => item.displayOrder)),
+    'Portfolio display positions must be unique',
+  );
 
 export const ProfessionalCertificatesUpdateSchema = z
   .object({
@@ -187,7 +193,7 @@ export const ProfessionalMetricsSchema = z
 export const PublicProfessionalProfileSchema = z
   .object({
     id: ProfessionalIdSchema,
-    displayName: NameSchema,
+    displayName: ProfessionalDisplayNameSchema,
     profileImage: PublicMediaAssetSchema.nullable(),
     biography: DescriptionSchema.nullable(),
     experienceYears: z.number().int().min(0).max(80),
@@ -211,7 +217,7 @@ export const PublicProfessionalProfileSchema = z
 export const ProfessionalOwnProfileSchema = z
   .object({
     id: ProfessionalIdSchema,
-    displayName: NameSchema.nullable(),
+    displayName: ProfessionalDisplayNameSchema.nullable(),
     profileImage: ModeratedMediaAssetSchema.nullable(),
     biography: DescriptionSchema.nullable(),
     experienceYears: z.number().int().min(0).max(80).nullable(),
@@ -280,6 +286,16 @@ export const AdminVerificationApplicationSchema = ProfessionalVerificationApplic
   reviewerAdminId: z.string().uuid().nullable(),
 }).strict();
 
+export const AdminVerificationNoteSchema = z
+  .object({
+    id: z.string().uuid(),
+    applicationId: VerificationApplicationIdSchema,
+    authorAdminId: z.string().uuid(),
+    note: InternalNoteSchema,
+    createdAt: IsoUtcDateTimeSchema,
+  })
+  .strict();
+
 export const VerificationStartReviewSchema = z.object({ expectedVersion: VersionSchema }).strict();
 
 export const AdminVerificationDecisionSchema = z.discriminatedUnion('decision', [
@@ -334,7 +350,11 @@ export const ProfessionalServiceUpsertSchema = z
       ),
     expectedVersion: VersionSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (input) => hasUniqueValues(input.portfolioImages.map((item) => item.displayOrder)),
+    'Service portfolio display positions must be unique',
+  );
 
 export const ProfessionalServiceStatusChangeSchema = z
   .object({
@@ -401,6 +421,14 @@ export const ProfessionalDiscoveryQuerySchema = z
       query.minimumPricePaise === undefined ||
       query.maximumPricePaise >= query.minimumPricePaise,
     'Maximum price must be greater than or equal to minimum price',
+  )
+  .refine(
+    (query) =>
+      (query.sort !== 'priceAsc' &&
+        query.minimumPricePaise === undefined &&
+        query.maximumPricePaise === undefined) ||
+      query.serviceId !== undefined,
+    'A service is required for price filtering or price sorting',
   );
 
 export const AdminProfessionalListQuerySchema = z
@@ -410,7 +438,7 @@ export const AdminProfessionalListQuerySchema = z
     launchEligibilityStatus: LaunchEligibilityStatusSchema.optional(),
     serviceAreaId: ServiceAreaIdSchema.optional(),
     search: SearchTermSchema.optional(),
-    sort: z.enum(['submittedAtAsc', 'submittedAtDesc', 'updatedAtDesc', 'ratingDesc']).optional(),
+    sort: z.enum(['updatedAtDesc', 'ratingDesc']).optional(),
     after: z.string().trim().min(1).max(512).optional(),
     limit: QueryPageLimitSchema.optional(),
   })
@@ -421,13 +449,34 @@ export const AdminProfessionalPageSchema = createCursorPageSchema(AdminProfessio
 export const OwnProfessionalServicePageSchema = createCursorPageSchema(
   OwnProfessionalServiceSchema,
 );
+export const PublicProfessionalServicePageSchema = createCursorPageSchema(
+  PublicProfessionalServiceSchema,
+);
 export const VerificationApplicationPageSchema = createCursorPageSchema(
   AdminVerificationApplicationSchema,
 );
+export const AdminVerificationNotePageSchema = createCursorPageSchema(AdminVerificationNoteSchema);
 
 export type ProfessionalProfileUpdate = z.infer<typeof ProfessionalProfileUpdateSchema>;
 export type PublicProfessionalProfile = z.infer<typeof PublicProfessionalProfileSchema>;
 export type ProfessionalOwnProfile = z.infer<typeof ProfessionalOwnProfileSchema>;
 export type AdminProfessionalProfile = z.infer<typeof AdminProfessionalProfileSchema>;
 export type ProfessionalServiceUpsert = z.infer<typeof ProfessionalServiceUpsertSchema>;
+export type OwnProfessionalService = z.infer<typeof OwnProfessionalServiceSchema>;
+export type ProfessionalVerificationApplication = z.infer<
+  typeof ProfessionalVerificationApplicationSchema
+>;
+export type AdminVerificationApplication = z.infer<typeof AdminVerificationApplicationSchema>;
+export type PublicProfessionalService = z.infer<typeof PublicProfessionalServiceSchema>;
 export type AdminVerificationDecision = z.infer<typeof AdminVerificationDecisionSchema>;
+export type ProfessionalPortfolioUpdate = z.infer<typeof ProfessionalPortfolioUpdateSchema>;
+export type ProfessionalCertificatesUpdate = z.infer<typeof ProfessionalCertificatesUpdateSchema>;
+export type ProfessionalVerificationSubmission = z.infer<
+  typeof ProfessionalVerificationSubmissionSchema
+>;
+export type VerificationStartReview = z.infer<typeof VerificationStartReviewSchema>;
+export type AdminVerificationNoteCreate = z.infer<typeof AdminVerificationNoteCreateSchema>;
+export type ProfessionalDiscoveryQuery = z.infer<typeof ProfessionalDiscoveryQuerySchema>;
+export type AdminProfessionalListQuery = z.infer<typeof AdminProfessionalListQuerySchema>;
+export type AdminVerificationNote = z.infer<typeof AdminVerificationNoteSchema>;
+export type ProfessionalServiceStatusChange = z.infer<typeof ProfessionalServiceStatusChangeSchema>;

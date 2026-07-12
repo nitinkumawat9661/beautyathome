@@ -5,6 +5,7 @@ import { CurrentActor } from '../common/decorators/current-actor.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import type { AuthenticatedActor } from '../common/types/authenticated-request';
+import { ProfessionalsService } from '../professionals/professionals.service';
 import { UsersService } from './users.service';
 import {
   AdminProfileUpdateSchema,
@@ -39,11 +40,11 @@ export class MeController {
 @Roles('PROFESSIONAL')
 @Controller('professional/profile')
 export class ProfessionalProfileController {
-  constructor(private readonly users: UsersService) {}
+  constructor(private readonly professionals: ProfessionalsService) {}
 
   @Get()
   getProfile(@CurrentActor() actor: AuthenticatedActor) {
-    return this.users.getProfessionalProfile(actor);
+    return this.professionals.getOwn(actor);
   }
 
   @Patch()
@@ -52,7 +53,7 @@ export class ProfessionalProfileController {
     @Body(new ZodValidationPipe(ProfessionalProfileUpdateSchema))
     input: ProfessionalProfileUpdate,
   ) {
-    return this.users.updateProfessionalProfile(actor, input);
+    return this.professionals.updateOwn(actor, input);
   }
 }
 

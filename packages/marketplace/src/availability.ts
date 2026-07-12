@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
 import {
+  CursorPageInfoSchema,
   AvailabilityOverrideIdSchema,
   AvailabilityRuleIdSchema,
   AvailabilitySlotIdSchema,
+  CityIdSchema,
   IanaTimeZoneSchema,
   IsoDateSchema,
   IsoUtcDateTimeSchema,
@@ -156,6 +158,19 @@ export const DateAvailabilityOverrideSchema = z
     }
   });
 
+export const AvailabilitySlotCreateSchema = z
+  .object({
+    serviceId: MasterServiceIdSchema,
+    startsAt: IsoUtcDateTimeSchema,
+    endsAt: IsoUtcDateTimeSchema,
+    displayTimeZone: IanaTimeZoneSchema,
+  })
+  .strict()
+  .refine(
+    (slot) => Date.parse(slot.endsAt) > Date.parse(slot.startsAt),
+    'Slot must end after it starts',
+  );
+
 export const AvailabilitySlotSchema = z
   .object({
     id: AvailabilitySlotIdSchema,
@@ -197,9 +212,51 @@ export const DateAvailabilityOverridePageSchema = createCursorPageSchema(
   DateAvailabilityOverrideSchema,
 );
 export const AvailabilitySlotPageSchema = createCursorPageSchema(AvailabilitySlotSchema);
+export const OwnAvailabilityScheduleSchema = z
+  .object({
+    id: z.string().uuid(),
+    cityId: CityIdSchema,
+    timeZone: IanaTimeZoneSchema,
+    version: VersionSchema,
+    rules: z.array(
+      z
+        .object({
+          id: AvailabilityRuleIdSchema,
+          weekday: IsoWeekdaySchema,
+          startLocalTime: LocalTimeSchema,
+          endLocalTime: LocalTimeSchema,
+        })
+        .strict(),
+    ),
+    overrides: z.array(
+      z
+        .object({
+          id: AvailabilityOverrideIdSchema,
+          date: IsoDateSchema,
+          kind: DateOverrideKindSchema,
+          reason: z.string().trim().min(1).max(300).nullable(),
+          intervals: z.array(LocalTimeIntervalSchema),
+          version: VersionSchema,
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+
+export const OwnAvailabilityResponseSchema = z
+  .object({
+    schedule: OwnAvailabilityScheduleSchema.nullable(),
+    slots: z.array(AvailabilitySlotSchema),
+    pageInfo: CursorPageInfoSchema,
+  })
+  .strict();
+
+export type OwnAvailabilityResponse = z.infer<typeof OwnAvailabilityResponseSchema>;
 
 export type WeeklyAvailabilityReplace = z.infer<typeof WeeklyAvailabilityReplaceSchema>;
 export type DateAvailabilityOverridesReplace = z.infer<
   typeof DateAvailabilityOverridesReplaceSchema
 >;
 export type AvailabilitySlot = z.infer<typeof AvailabilitySlotSchema>;
+export type AvailabilitySlotCreate = z.infer<typeof AvailabilitySlotCreateSchema>;
+export type AvailabilityRangeQuery = z.infer<typeof AvailabilityRangeQuerySchema>;

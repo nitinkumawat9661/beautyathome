@@ -90,8 +90,9 @@ export const PositiveDurationMinutesSchema = z
   .int()
   .min(5)
   .max(24 * 60);
-export const PaiseSchema = z.number().int().nonnegative();
-export const PositivePaiseSchema = z.number().int().positive();
+export const POSTGRES_INTEGER_MAX = 2_147_483_647;
+export const PaiseSchema = z.number().int().nonnegative().max(POSTGRES_INTEGER_MAX);
+export const PositivePaiseSchema = z.number().int().positive().max(POSTGRES_INTEGER_MAX);
 
 export const CursorSchema = z
   .string()
@@ -103,7 +104,7 @@ export const CursorSchema = z
 export const SearchTermSchema = z.string().trim().min(2).max(100);
 
 export const QueryPageLimitSchema = z.coerce.number().int().min(1).max(MAX_CURSOR_PAGE_LIMIT);
-export const QueryPaiseSchema = z.coerce.number().int().nonnegative();
+export const QueryPaiseSchema = z.coerce.number().int().nonnegative().max(POSTGRES_INTEGER_MAX);
 
 export function createQueryArraySchema<T extends z.ZodType>(itemSchema: T, maximumItems: number) {
   return z.preprocess(
