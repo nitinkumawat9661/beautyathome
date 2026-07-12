@@ -926,3 +926,483 @@ model AuditEvent {
   @@index([action, createdAt], map: "audit_events_action_created_idx")
   @@map("audit_events")
 }
+
+enum BookingStatus {
+  DRAFT
+  PAYMENT_PENDING
+  REQUESTED
+  ACCEPTED
+  REJECTED
+  CONFIRMED
+  EN_ROUTE
+  ARRIVED
+  START_OTP_PENDING
+  IN_PROGRESS
+  COMPLETION_OTP_PENDING
+  COMPLETED
+  CANCELLED
+  REFUND_PENDING
+  REFUNDED
+  DISPUTED
+  NO_SHOW
+
+  @@map("booking_status")
+}
+
+enum AssignmentMode {
+  SELECTED_PROFESSIONAL
+  BEST_AVAILABLE
+
+  @@map("assignment_mode")
+}
+
+enum AssignmentStatus {
+  OFFERED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  CANCELLED
+
+  @@map("assignment_status")
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  CAPTURED
+  FAILED
+  CANCELLED
+  PARTIALLY_REFUNDED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+enum PaymentAttemptStatus {
+  CREATED
+  SUCCEEDED
+  FAILED
+  TIMED_OUT
+
+  @@map("payment_attempt_status")
+}
+
+enum RefundStatus {
+  REQUESTED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+
+  @@map("refund_status")
+}
+
+enum WalletEntryDirection {
+  CREDIT
+  DEBIT
+
+  @@map("wallet_entry_direction")
+}
+
+enum WalletEntryState {
+  PENDING
+  AVAILABLE
+  RESERVED
+  SETTLED
+  REVERSED
+
+  @@map("wallet_entry_state")
+}
+
+enum WithdrawalStatus {
+  REQUESTED
+  UNDER_REVIEW
+  PROCESSING
+  PAID
+  FAILED
+  REJECTED
+  CANCELLED
+
+  @@map("withdrawal_status")
+}
+
+enum PayoutAccountStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+  DISABLED
+
+  @@map("payout_account_status")
+}
+
+enum ServiceOtpPurpose {
+  START
+  COMPLETION
+
+  @@map("service_otp_purpose")
+}
+
+enum ServiceOtpStatus {
+  ACTIVE
+  CONSUMED
+  EXPIRED
+  LOCKED
+  REVOKED
+
+  @@map("service_otp_status")
+}
+
+enum ReviewModerationStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+  REJECTED
+
+  @@map("review_moderation_status")
+}
+
+enum ReminderStatus {
+  SCHEDULED
+  SENT
+  CANCELLED
+  FAILED
+
+  @@map("reminder_status")
+}
+
+model CustomerAddress {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerUserId    String    @map("customer_user_id") @db.Uuid
+  serviceAreaId     String    @map("service_area_id") @db.Uuid
+  label             String    @db.VarChar(80)
+  recipientName     String    @map("recipient_name") @db.VarChar(120)
+  encryptedAddress  String    @map("encrypted_address") @db.Text
+  addressKeyVersion String    @map("address_key_version") @db.VarChar(40)
+  maskedAddress     String    @map("masked_address") @db.VarChar(250)
+  latitude          Decimal?  @db.Decimal(9, 6)
+  longitude         Decimal?  @db.Decimal(9, 6)
+  isDefault         Boolean   @default(false) @map("is_default")
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(3)
+  version           Int       @default(1)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([customerUserId, deletedAt], map: "customer_addresses_customer_deleted_idx")
+  @@index([serviceAreaId, deletedAt], map: "customer_addresses_area_deleted_idx")
+  @@map("customer_addresses")
+}
+
+model Booking {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerUserId         String                 @map("customer_user_id") @db.Uuid
+  cityId                 String                 @map("city_id") @db.Uuid
+  serviceAreaId          String                 @map("service_area_id") @db.Uuid
+  serviceId              String                 @map("service_id") @db.Uuid
+  addressId              String                 @map("address_id") @db.Uuid
+  slotId                 String                 @map("slot_id") @db.Uuid
+  selectedProfessionalId String?                @map("selected_professional_id") @db.Uuid
+  assignedProfessionalId String?                @map("assigned_professional_id") @db.Uuid
+  assignmentMode         AssignmentMode         @map("assignment_mode")
+  status                 BookingStatus          @default(DRAFT)
+  currency               String                 @default("INR") @db.Char(3)
+  servicePricePaise      BigInt                 @map("service_price_paise")
+  platformFeePaise       BigInt                 @default(0) @map("platform_fee_paise")
+  discountPaise          BigInt                 @default(0) @map("discount_paise")
+  rewardPaise            BigInt                 @default(0) @map("reward_paise")
+  taxPaise               BigInt                 @default(0) @map("tax_paise")
+  totalPaise             BigInt                 @map("total_paise")
+  advancePaise           BigInt                 @map("advance_paise")
+  remainingPaise         BigInt                 @map("remaining_paise")
+  serviceNameSnapshot    String                 @map("service_name_snapshot") @db.VarChar(120)
+  addressSnapshot        Json                   @map("address_snapshot")
+  scheduledStart         DateTime               @map("scheduled_start") @db.Timestamptz(3)
+  scheduledEnd           DateTime               @map("scheduled_end") @db.Timestamptz(3)
+  quoteExpiresAt         DateTime               @map("quote_expires_at") @db.Timestamptz(3)
+  completedAt            DateTime?              @map("completed_at") @db.Timestamptz(3)
+  cancelledAt            DateTime?              @map("cancelled_at") @db.Timestamptz(3)
+  cancellationReasonCode String?                @map("cancellation_reason_code") @db.VarChar(80)
+  idempotencyKey         String                 @unique(map: "bookings_idempotency_key") @map("idempotency_key") @db.VarChar(128)
+  version                Int                    @default(1)
+  createdAt              DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  history                BookingStatusHistory[]
+  assignments            BookingAssignment[]
+  payments               Payment[]
+  refunds                Refund[]
+  commission             BookingCommission?
+  otpChallenges          ServiceOtpChallenge[]
+  review                 Review?
+  reminders              RebookingReminder[]
+
+  @@index([customerUserId, createdAt], map: "bookings_customer_created_idx")
+  @@index([assignedProfessionalId, status, scheduledStart], map: "bookings_professional_schedule_idx")
+  @@index([slotId, status], map: "bookings_slot_status_idx")
+  @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId   String         @map("booking_id") @db.Uuid
+  fromStatus  BookingStatus? @map("from_status")
+  toStatus    BookingStatus  @map("to_status")
+  actorUserId String?        @map("actor_user_id") @db.Uuid
+  actorRole   Role?          @map("actor_role")
+  reasonCode  String         @map("reason_code") @db.VarChar(80)
+  reason      String?        @db.VarChar(500)
+  metadata    Json?
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  booking     Booking        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, createdAt], map: "booking_status_history_booking_created_idx")
+  @@map("booking_status_history")
+}
+
+model BookingAssignment {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId         String           @map("booking_id") @db.Uuid
+  professionalId    String           @map("professional_id") @db.Uuid
+  rank              Int
+  scoreSnapshot     Json             @map("score_snapshot")
+  status            AssignmentStatus @default(OFFERED)
+  offeredAt         DateTime         @default(now()) @map("offered_at") @db.Timestamptz(3)
+  expiresAt         DateTime         @map("expires_at") @db.Timestamptz(3)
+  respondedAt       DateTime?        @map("responded_at") @db.Timestamptz(3)
+  declineReasonCode String?          @map("decline_reason_code") @db.VarChar(80)
+  booking           Booking          @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@unique([bookingId, professionalId], map: "booking_assignments_booking_professional_key")
+  @@index([professionalId, status, expiresAt], map: "booking_assignments_professional_status_idx")
+  @@map("booking_assignments")
+}
+
+model Payment {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId         String           @map("booking_id") @db.Uuid
+  provider          String           @db.VarChar(40)
+  providerOrderId   String?          @unique(map: "payments_provider_order_key") @map("provider_order_id") @db.VarChar(200)
+  providerPaymentId String?          @unique(map: "payments_provider_payment_key") @map("provider_payment_id") @db.VarChar(200)
+  amountPaise       BigInt           @map("amount_paise")
+  currency          String           @default("INR") @db.Char(3)
+  status            PaymentStatus    @default(CREATED)
+  idempotencyKey    String           @unique(map: "payments_idempotency_key") @map("idempotency_key") @db.VarChar(128)
+  capturedAt        DateTime?        @map("captured_at") @db.Timestamptz(3)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  booking           Booking          @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  attempts          PaymentAttempt[]
+  refunds           Refund[]
+
+  @@index([bookingId, status], map: "payments_booking_status_idx")
+  @@map("payments")
+}
+
+model PaymentAttempt {
+  id                String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentId         String               @map("payment_id") @db.Uuid
+  status            PaymentAttemptStatus
+  providerReference String?              @map("provider_reference") @db.VarChar(200)
+  failureCode       String?              @map("failure_code") @db.VarChar(100)
+  failureMessage    String?              @map("failure_message") @db.VarChar(500)
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  payment           Payment              @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId, createdAt], map: "payment_attempts_payment_created_idx")
+  @@map("payment_attempts")
+}
+
+model PaymentWebhookEvent {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider        String    @db.VarChar(40)
+  providerEventId String    @map("provider_event_id") @db.VarChar(200)
+  eventType       String    @map("event_type") @db.VarChar(100)
+  payloadHash     String    @map("payload_hash") @db.Char(64)
+  processedAt     DateTime? @map("processed_at") @db.Timestamptz(3)
+  failureMessage  String?   @map("failure_message") @db.VarChar(500)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([provider, providerEventId], map: "payment_webhooks_provider_event_key")
+  @@map("payment_webhook_events")
+}
+
+model Refund {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId         String       @map("booking_id") @db.Uuid
+  paymentId         String       @map("payment_id") @db.Uuid
+  amountPaise       BigInt       @map("amount_paise")
+  policyVersion     String       @map("policy_version") @db.VarChar(80)
+  refundBasisPoints Int          @map("refund_basis_points")
+  reasonCode        String       @map("reason_code") @db.VarChar(80)
+  status            RefundStatus @default(REQUESTED)
+  providerRefundId  String?      @unique(map: "refunds_provider_refund_key") @map("provider_refund_id") @db.VarChar(200)
+  idempotencyKey    String       @unique(map: "refunds_idempotency_key") @map("idempotency_key") @db.VarChar(128)
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  booking           Booking      @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  payment           Payment      @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, status], map: "refunds_booking_status_idx")
+  @@map("refunds")
+}
+
+model CommissionRule {
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  level                String?             @db.VarChar(50)
+  packageCode          String?             @map("package_code") @db.VarChar(80)
+  minimumCompletedJobs Int?                @map("minimum_completed_jobs")
+  categoryId           String?             @map("category_id") @db.Uuid
+  cityId               String?             @map("city_id") @db.Uuid
+  promotionalOverride  Boolean             @default(false) @map("promotional_override")
+  rateBasisPoints      Int                 @map("rate_basis_points")
+  fixedFeePaise        BigInt              @default(0) @map("fixed_fee_paise")
+  effectiveFrom        DateTime            @map("effective_from") @db.Timestamptz(3)
+  effectiveTo          DateTime?           @map("effective_to") @db.Timestamptz(3)
+  priority             Int                 @default(0)
+  active               Boolean             @default(true)
+  version              Int                 @default(1)
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  snapshots            BookingCommission[]
+
+  @@index([cityId, categoryId, active, effectiveFrom], map: "commission_rules_match_idx")
+  @@map("commission_rules")
+}
+
+model BookingCommission {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId           String         @unique(map: "booking_commissions_booking_key") @map("booking_id") @db.Uuid
+  ruleId              String         @map("rule_id") @db.Uuid
+  ruleVersion         Int            @map("rule_version")
+  calculationSnapshot Json           @map("calculation_snapshot")
+  grossPaise          BigInt         @map("gross_paise")
+  commissionPaise     BigInt         @map("commission_paise")
+  netPaise            BigInt         @map("net_paise")
+  recognizedAt        DateTime?      @map("recognized_at") @db.Timestamptz(3)
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  booking             Booking        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  rule                CommissionRule @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+
+  @@map("booking_commissions")
+}
+
+model WalletAccount {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId String              @unique(map: "wallet_accounts_professional_key") @map("professional_id") @db.Uuid
+  currency       String              @default("INR") @db.Char(3)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  entries        WalletLedgerEntry[]
+  withdrawals    Withdrawal[]
+
+  @@map("wallet_accounts")
+}
+
+model WalletLedgerEntry {
+  id                String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId          String               @map("wallet_id") @db.Uuid
+  bookingId         String?              @map("booking_id") @db.Uuid
+  withdrawalId      String?              @map("withdrawal_id") @db.Uuid
+  reversalOfEntryId String?              @map("reversal_of_entry_id") @db.Uuid
+  entryType         String               @map("entry_type") @db.VarChar(60)
+  direction         WalletEntryDirection
+  state             WalletEntryState
+  amountPaise       BigInt               @map("amount_paise")
+  availableAt       DateTime?            @map("available_at") @db.Timestamptz(3)
+  idempotencyKey    String               @unique(map: "wallet_entries_idempotency_key") @map("idempotency_key") @db.VarChar(128)
+  metadata          Json?
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  wallet            WalletAccount        @relation(fields: [walletId], references: [id], onDelete: Restrict)
+  withdrawal        Withdrawal?          @relation(fields: [withdrawalId], references: [id], onDelete: Restrict)
+  reversalOf        WalletLedgerEntry?   @relation("WalletReversal", fields: [reversalOfEntryId], references: [id], onDelete: Restrict)
+  reversals         WalletLedgerEntry[]  @relation("WalletReversal")
+
+  @@index([walletId, state, availableAt], map: "wallet_entries_wallet_state_available_idx")
+  @@index([bookingId, createdAt], map: "wallet_entries_booking_created_idx")
+  @@map("wallet_ledger_entries")
+}
+
+model PayoutAccount {
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId       String              @map("professional_id") @db.Uuid
+  provider             String              @db.VarChar(40)
+  encryptedDetails     String              @map("encrypted_details") @db.Text
+  detailsKeyVersion    String              @map("details_key_version") @db.VarChar(40)
+  maskedLabel          String              @map("masked_label") @db.VarChar(100)
+  beneficiaryReference String?             @map("beneficiary_reference") @db.VarChar(200)
+  status               PayoutAccountStatus @default(PENDING_VERIFICATION)
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  withdrawals          Withdrawal[]
+
+  @@index([professionalId, status], map: "payout_accounts_professional_status_idx")
+  @@map("payout_accounts")
+}
+
+model Withdrawal {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId            String              @map("wallet_id") @db.Uuid
+  payoutAccountId     String              @map("payout_account_id") @db.Uuid
+  amountPaise         BigInt              @map("amount_paise")
+  currency            String              @default("INR") @db.Char(3)
+  status              WithdrawalStatus    @default(REQUESTED)
+  destinationSnapshot Json                @map("destination_snapshot")
+  providerPayoutId    String?             @unique(map: "withdrawals_provider_payout_key") @map("provider_payout_id") @db.VarChar(200)
+  failureCode         String?             @map("failure_code") @db.VarChar(100)
+  internalNote        String?             @map("internal_note") @db.VarChar(2000)
+  idempotencyKey      String              @unique(map: "withdrawals_idempotency_key") @map("idempotency_key") @db.VarChar(128)
+  requestedAt         DateTime            @default(now()) @map("requested_at") @db.Timestamptz(3)
+  decidedAt           DateTime?           @map("decided_at") @db.Timestamptz(3)
+  settledAt           DateTime?           @map("settled_at") @db.Timestamptz(3)
+  wallet              WalletAccount       @relation(fields: [walletId], references: [id], onDelete: Restrict)
+  payoutAccount       PayoutAccount       @relation(fields: [payoutAccountId], references: [id], onDelete: Restrict)
+  ledgerEntries       WalletLedgerEntry[]
+
+  @@index([status, requestedAt], map: "withdrawals_status_requested_idx")
+  @@map("withdrawals")
+}
+
+model ServiceOtpChallenge {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId         String            @map("booking_id") @db.Uuid
+  purpose           ServiceOtpPurpose
+  codeHash          String            @map("code_hash") @db.Char(64)
+  status            ServiceOtpStatus  @default(ACTIVE)
+  expiresAt         DateTime          @map("expires_at") @db.Timestamptz(3)
+  attempts          Int               @default(0)
+  maxAttempts       Int               @default(5) @map("max_attempts")
+  regeneratedFromId String?           @map("regenerated_from_id") @db.Uuid
+  consumedAt        DateTime?         @map("consumed_at") @db.Timestamptz(3)
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  booking           Booking           @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, purpose, status, createdAt], map: "service_otps_booking_purpose_status_idx")
+  @@map("service_otp_challenges")
+}
+
+model Review {
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId        String                 @unique(map: "reviews_booking_key") @map("booking_id") @db.Uuid
+  customerUserId   String                 @map("customer_user_id") @db.Uuid
+  professionalId   String                 @map("professional_id") @db.Uuid
+  rating           Int
+  comment          String?                @db.VarChar(2000)
+  moderationStatus ReviewModerationStatus @default(PENDING) @map("moderation_status")
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  booking          Booking                @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([professionalId, moderationStatus, createdAt], map: "reviews_professional_status_created_idx")
+  @@map("reviews")
+}
+
+model RebookingReminder {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId      String         @map("booking_id") @db.Uuid
+  customerUserId String         @map("customer_user_id") @db.Uuid
+  professionalId String         @map("professional_id") @db.Uuid
+  remindAt       DateTime       @map("remind_at") @db.Timestamptz(3)
+  status         ReminderStatus @default(SCHEDULED)
+  sentAt         DateTime?      @map("sent_at") @db.Timestamptz(3)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  booking        Booking        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([status, remindAt], map: "rebooking_reminders_status_time_idx")
+  @@map("rebooking_reminders")
+}
