@@ -31,10 +31,6 @@ export function CustomerCatalogue() {
 
   useEffect(() => {
     const controller = new AbortController();
-    // Reset request state when reloading the catalogue.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    setError(null);
 
     void Promise.all([listCities(controller.signal), listCategories(undefined, controller.signal)])
       .then(([cityPage, categoryPage]) => {
@@ -80,6 +76,12 @@ export function CustomerCatalogue() {
   function clearFilters(): void {
     setCategoryId('');
     setSearch('');
+  }
+
+  function retryCatalogue(): void {
+    setLoading(true);
+    setError(null);
+    setCatalogueVersion((value) => value + 1);
   }
 
   return (
@@ -187,7 +189,7 @@ export function CustomerCatalogue() {
             </div>
             <button
               className="rounded-full bg-red-800 px-5 py-2.5 text-sm font-semibold text-white dark:bg-red-200 dark:text-red-950"
-              onClick={() => setCatalogueVersion((value) => value + 1)}
+              onClick={retryCatalogue}
               type="button"
             >
               Try again
