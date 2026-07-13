@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { Button } from '@beautyathome/ui';
+import { Button } from "@beautyathome/ui";
 
-import { useAuthSession } from '@/components/auth-provider';
-import { logout } from '@/lib/api/api-client';
+import { useAuthSession } from "@/components/auth-provider";
+import { logout } from "@/lib/api/api-client";
 
 export function SiteHeader() {
   const session = useAuthSession();
@@ -20,10 +20,10 @@ export function SiteHeader() {
     setSignOutError(null);
     try {
       await logout();
-      router.replace('/');
+      router.replace("/");
     } catch {
       setSignOutError(
-        'Sign out could not be confirmed. Your session remains active; please try again.',
+        "Sign out could not be confirmed. Your session remains active; please try again.",
       );
     } finally {
       setIsSigningOut(false);
@@ -38,66 +38,87 @@ export function SiteHeader() {
             B
           </span>
           <span>
-            <span className="block text-base font-semibold tracking-[-0.02em]">BeautyAtHome</span>
+            <span className="block text-base font-semibold tracking-[-0.02em]">
+              BeautyAtHome
+            </span>
             <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9a687c] dark:text-[#d7a9bb]">
               Sikar
             </span>
           </span>
         </Link>
 
-        <nav aria-label="Primary navigation" className="hidden items-center gap-7 text-sm md:flex">
-          <Link className="font-medium transition hover:text-[#a0486b]" href="/services">
+        <nav
+          aria-label="Primary navigation"
+          className="hidden items-center gap-7 text-sm md:flex"
+        >
+          <Link
+            className="font-medium transition hover:text-[#a0486b]"
+            href="/services"
+          >
             Services
           </Link>
-          <Link className="font-medium transition hover:text-[#a0486b]" href="/#how-it-works">
+          <Link
+            className="font-medium transition hover:text-[#a0486b]"
+            href="/#how-it-works"
+          >
             How it works
           </Link>
-          <Link className="font-medium transition hover:text-[#a0486b]" href="/auth">
+          <Link
+            className="font-medium transition hover:text-[#a0486b]"
+            href="/auth"
+          >
             For professionals
           </Link>
         </nav>
 
-        <nav aria-label="Account" className="flex items-center justify-end gap-2 text-sm">
+        <nav
+          aria-label="Account"
+          className="flex items-center justify-end gap-2 text-sm"
+        >
           <Link
             className="rounded-full px-3 py-2 font-medium transition hover:bg-[#f4e6eb] md:hidden dark:hover:bg-[#33212a]"
             href="/services"
           >
             Services
           </Link>
-          {session.status === 'authenticated' && session.principal ? (
+          {session.status === "authenticated" && session.principal ? (
             <>
               <Link
                 className="hidden rounded-full px-4 py-2 font-semibold transition hover:bg-[#f4e6eb] sm:inline-flex dark:hover:bg-[#33212a]"
                 href={
-                  session.principal.activeRole === 'PROFESSIONAL'
-                    ? '/professional'
-                    : ['ADMIN', 'SUPPORT', 'FINANCE'].includes(session.principal.activeRole)
-                      ? '/admin'
-                      : '/profile'
+                  session.principal.activeRole === "PROFESSIONAL"
+                    ? "/professional"
+                    : ["ADMIN", "SUPPORT", "FINANCE"].includes(
+                          session.principal.activeRole,
+                        )
+                      ? "/admin"
+                      : "/profile"
                 }
               >
-                {session.principal.activeRole === 'PROFESSIONAL'
-                  ? 'Workspace'
-                  : ['ADMIN', 'SUPPORT', 'FINANCE'].includes(session.principal.activeRole)
-                    ? 'Admin'
-                    : 'My profile'}
+                {session.principal.activeRole === "PROFESSIONAL"
+                  ? "Workspace"
+                  : ["ADMIN", "SUPPORT", "FINANCE"].includes(
+                        session.principal.activeRole,
+                      )
+                    ? "Admin"
+                    : "My profile"}
               </Link>
               <Button
                 className="min-h-10 rounded-full border border-[#d8bdc8] px-4 font-semibold transition hover:bg-[#f4e6eb] disabled:cursor-wait disabled:opacity-60 dark:border-[#5b3c49] dark:hover:bg-[#33212a]"
                 disabled={isSigningOut}
                 onClick={() => void handleSignOut()}
               >
-                {isSigningOut ? 'Signing out…' : 'Sign out'}
+                {isSigningOut ? "Signing out…" : "Sign out"}
               </Button>
             </>
-          ) : session.status === 'unauthenticated' ? (
+          ) : session.status === "unauthenticated" ? (
             <Link
               className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#3b1d2d] px-5 font-semibold text-white shadow-sm transition hover:bg-[#54283d] dark:bg-[#f2c9d9] dark:text-[#321d28]"
               href="/auth"
             >
               Sign in
             </Link>
-          ) : session.status === 'unavailable' ? (
+          ) : session.status === "unavailable" ? (
             <Button
               className="rounded-full border border-[#d8bdc8] px-4 py-2 font-semibold hover:bg-[#f4e6eb] dark:border-[#5b3c49] dark:hover:bg-[#33212a]"
               onClick={() => window.location.reload()}
