@@ -46,7 +46,7 @@ function buildOtpRequest(
   purpose: OtpPurpose,
   mobileNumber: IndiaMobileNumber,
 ): OtpRequest {
-  if (role === 'ADMIN' || role === 'SUPPORT' || role === 'FINANCE') {
+  if (role !== 'CUSTOMER') {
     return { role, purpose: 'SIGN_IN', mobileNumber };
   }
 
@@ -59,6 +59,12 @@ function buildOtpVerifyRequest(
   otp: string,
 ): OtpVerifyRequest {
   return OtpVerifyRequestSchema.parse({ ...request, challengeId, otp });
+}
+
+function destinationForRole(role: OtpAuthRole): string {
+  if (role === 'PROFESSIONAL') return '/professional';
+  if (role === 'ADMIN' || role === 'SUPPORT' || role === 'FINANCE') return '/admin';
+  return '/profile';
 }
 
 export function OtpAuthForm({ mode }: OtpAuthFormProps) {
@@ -84,13 +90,13 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
   const [notice, setNotice] = useState<string | null>(null);
 
   const role: MarketplaceRole | StaffRole = mode === 'admin' ? staffRole : marketplaceRole;
-  const effectivePurpose: OtpPurpose = mode === 'admin' ? 'SIGN_IN' : purpose;
+  const effectivePurpose: OtpPurpose = role === 'CUSTOMER' ? purpose : 'SIGN_IN';
 
   useEffect(() => {
-    if (session.status === 'authenticated') {
-      router.replace('/profile');
+    if (session.status === 'authenticated' && session.principal) {
+      router.replace(destinationForRole(session.principal.activeRole));
     }
-  }, [router, session.status]);
+  }, [router, session.principal, session.status]);
 
   useEffect(() => {
     if (challenge !== null) {
@@ -138,7 +144,7 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
       setNormalizedMobile(mobileNumber);
       setChallenge(response);
       setOtp('');
-      setNotice('If this request is eligible, the latest verification code has been sent.');
+      setNotice('If this mobile number is eligible, the latest verification code has been sent.');
     } catch (error: unknown) {
       setErrorMessage(authenticationErrorMessage(error, 'request'));
     } finally {
@@ -165,8 +171,8 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
 
     try {
       const request = buildOtpRequest(role, effectivePurpose, normalizedMobile);
-      await verifyOtp(buildOtpVerifyRequest(request, challenge.challengeId, otp));
-      router.replace('/profile');
+      const response = await verifyOtp(buildOtpVerifyRequest(request, challenge.challengeId, otp));
+      router.replace(destinationForRole(response.principal.activeRole));
     } catch (error: unknown) {
       setErrorMessage(authenticationErrorMessage(error, 'verify'));
     } finally {
@@ -181,44 +187,46 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
     : null;
 
   return (
-    <form className="space-y-6" noValidate onSubmit={(event) => void handleSubmit(event)}>
+    <form className="space-y-7" noValidate onSubmit={(event) => void handleSubmit(event)}>
       {mode === 'marketplace' ? (
         <fieldset disabled={challenge !== null || isSubmitting}>
-          <legend className="mb-2 text-sm font-medium">I am continuing as</legend>
-          <div className="grid grid-cols-2 gap-2" role="radiogroup">
+          <legend className="mb-3 text-sm font-semibold">Continue as</legend>
+          <div className="grid grid-cols-2 border border-[#d8c7ce] dark:border-[#49343e]">
             {(['CUSTOMER', 'PROFESSIONAL'] as const).map((option) => (
               <Button
                 aria-checked={marketplaceRole === option}
-                className={`min-h-12 rounded-md border px-3 text-sm font-medium ${
+                className={`min-h-12 px-3 text-sm font-medium transition ${
                   marketplaceRole === option
-                    ? 'border-zinc-950 bg-zinc-950 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950'
-                    : 'border-zinc-300 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900'
+                    ? 'bg-[#3b1d2d] text-white dark:bg-[#f2cbd9] dark:text-[#321d28]'
+                    : 'bg-transparent hover:bg-[#f5e9ed] dark:hover:bg-[#2b1e24]'
                 }`}
                 key={option}
                 onClick={() => {
                   setMarketplaceRole(option);
+                  if (option === 'PROFESSIONAL') setPurpose('SIGN_IN');
                   resetChallenge();
                 }}
                 role="radio"
+                type="button"
               >
-                {option === 'CUSTOMER' ? 'Customer' : 'Professional'}
+                {option === 'CUSTOMER' ? 'Customer' : 'Approved professional'}
               </Button>
             ))}
           </div>
         </fieldset>
       ) : null}
 
-      {mode === 'marketplace' ? (
+      {mode === 'marketplace' && marketplaceRole === 'CUSTOMER' ? (
         <fieldset disabled={challenge !== null || isSubmitting}>
-          <legend className="mb-2 text-sm font-medium">Account action</legend>
-          <div className="grid grid-cols-2 gap-2" role="radiogroup">
+          <legend className="mb-3 text-sm font-semibold">Account action</legend>
+          <div className="grid grid-cols-2 border border-[#d8c7ce] dark:border-[#49343e]">
             {(['SIGN_IN', 'SIGN_UP'] as const).map((option) => (
               <Button
                 aria-checked={purpose === option}
-                className={`min-h-11 rounded-md border px-3 text-sm ${
+                className={`min-h-11 px-3 text-sm transition ${
                   purpose === option
-                    ? 'border-zinc-950 font-semibold dark:border-zinc-100'
-                    : 'border-zinc-300 dark:border-zinc-700'
+                    ? 'bg-[#f0dfe6] font-semibold text-[#3b1d2d] dark:bg-[#3a2730] dark:text-[#f5dce6]'
+                    : 'bg-transparent hover:bg-[#f7eef1] dark:hover:bg-[#2b1e24]'
                 }`}
                 key={option}
                 onClick={() => {
@@ -226,24 +234,30 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
                   resetChallenge();
                 }}
                 role="radio"
+                type="button"
               >
-                {option === 'SIGN_IN' ? 'Sign in' : 'Create account'}
+                {option === 'SIGN_IN' ? 'Sign in' : 'Create customer account'}
               </Button>
             ))}
           </div>
         </fieldset>
+      ) : mode === 'marketplace' ? (
+        <p className="border-y border-[#ddd0d6] py-4 text-sm leading-6 text-[#715d67] dark:border-[#46333c] dark:text-[#cdbac3]">
+          Professional access is sign-in only. The mobile number must already be approved and
+          provisioned by platform operations.
+        </p>
       ) : (
         <div className="space-y-3">
           <fieldset disabled={challenge !== null || isSubmitting}>
-            <legend className="mb-2 text-sm font-medium">Staff role</legend>
-            <div className="grid grid-cols-3 gap-2" role="radiogroup">
+            <legend className="mb-3 text-sm font-semibold">Staff role</legend>
+            <div className="grid grid-cols-3 border border-[#d8c7ce] dark:border-[#49343e]">
               {(['ADMIN', 'SUPPORT', 'FINANCE'] as const).map((option) => (
                 <Button
                   aria-checked={staffRole === option}
-                  className={`min-h-11 rounded-md border px-2 text-sm ${
+                  className={`min-h-11 px-2 text-sm ${
                     staffRole === option
-                      ? 'border-zinc-950 font-semibold dark:border-zinc-100'
-                      : 'border-zinc-300 dark:border-zinc-700'
+                      ? 'bg-zinc-950 font-semibold text-white dark:bg-zinc-100 dark:text-zinc-950'
+                      : 'bg-transparent'
                   }`}
                   key={option}
                   onClick={() => {
@@ -251,13 +265,14 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
                     resetChallenge();
                   }}
                   role="radio"
+                  type="button"
                 >
                   {option === 'ADMIN' ? 'Admin' : option === 'SUPPORT' ? 'Support' : 'Finance'}
                 </Button>
               ))}
             </div>
           </fieldset>
-          <p className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm leading-6 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          <p className="border-y border-zinc-200 py-4 text-sm leading-6 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
             Staff access is sign-in only. Accounts and roles are provisioned by authorized platform
             operations.
           </p>
@@ -265,14 +280,14 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
       )}
 
       <div>
-        <label className="mb-2 block text-sm font-medium" htmlFor={`${mode}-mobile`}>
+        <label className="mb-2 block text-sm font-semibold" htmlFor={`${mode}-mobile`}>
           Mobile number
         </label>
         <input
           aria-describedby={`${mode}-mobile-help ${mode}-form-message`}
           aria-invalid={Boolean(errorMessage) && challenge === null}
           autoComplete="tel"
-          className="min-h-12 w-full rounded-md border border-zinc-300 bg-transparent px-3 disabled:opacity-70 dark:border-zinc-700"
+          className="min-h-12 w-full border border-[#d8c7ce] bg-transparent px-4 outline-none transition focus:border-[#8f526a] disabled:opacity-70 dark:border-[#49343e]"
           disabled={challenge !== null || isSubmitting}
           id={`${mode}-mobile`}
           inputMode="tel"
@@ -284,7 +299,7 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
           value={mobileInput}
         />
         <p
-          className="mt-2 text-xs leading-5 text-zinc-600 dark:text-zinc-400"
+          className="mt-2 text-xs leading-5 text-[#806b75] dark:text-[#bfaab4]"
           id={`${mode}-mobile-help`}
         >
           Indian mobile numbers only. Standard messaging rates may apply.
@@ -295,17 +310,18 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
         <div>
           <div className="mb-3 flex items-start justify-between gap-4">
             <div>
-              <label className="block text-sm font-medium" htmlFor={`${mode}-otp`}>
+              <label className="block text-sm font-semibold" htmlFor={`${mode}-otp`}>
                 Verification code
               </label>
-              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+              <p className="mt-1 text-xs text-[#806b75] dark:text-[#bfaab4]">
                 Sent to {maskMobileNumber(normalizedMobile)}. Expires around {expiry}.
               </p>
             </div>
             <Button
-              className="shrink-0 rounded px-2 py-1 text-sm font-medium underline underline-offset-4 disabled:opacity-60"
+              className="shrink-0 px-2 py-1 text-sm font-medium underline underline-offset-4 disabled:opacity-60"
               disabled={isSubmitting}
               onClick={resetChallenge}
+              type="button"
             >
               Change number
             </Button>
@@ -314,7 +330,7 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
             aria-describedby={`${mode}-otp-help ${mode}-form-message`}
             aria-invalid={Boolean(errorMessage)}
             autoComplete="one-time-code"
-            className="min-h-12 w-full rounded-md border border-zinc-300 bg-transparent px-3 font-mono tracking-[0.35em] dark:border-zinc-700"
+            className="min-h-12 w-full border border-[#d8c7ce] bg-transparent px-4 font-mono tracking-[0.35em] outline-none transition focus:border-[#8f526a] dark:border-[#49343e]"
             disabled={isSubmitting}
             id={`${mode}-otp`}
             inputMode="numeric"
@@ -326,8 +342,8 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
             required
             value={otp}
           />
-          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400" id={`${mode}-otp-help`}>
-            For your security, use this challenge until it expires before requesting another code.
+          <p className="mt-2 text-xs text-[#806b75] dark:text-[#bfaab4]" id={`${mode}-otp-help`}>
+            Use this verification challenge until it expires before requesting another code.
           </p>
         </div>
       ) : null}
@@ -342,12 +358,12 @@ export function OtpAuthForm({ mode }: OtpAuthFormProps) {
           <p className="font-medium text-red-700 dark:text-red-300">{errorMessage}</p>
         ) : null}
         {!errorMessage && notice ? (
-          <p className="text-zinc-700 dark:text-zinc-300">{notice}</p>
+          <p className="text-[#715d67] dark:text-[#cdbac3]">{notice}</p>
         ) : null}
       </div>
 
       <Button
-        className="min-h-12 w-full rounded-md bg-zinc-950 px-4 font-semibold text-white hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
+        className="min-h-12 w-full bg-[#3b1d2d] px-4 font-semibold text-white transition hover:bg-[#52283d] disabled:cursor-wait disabled:opacity-60 dark:bg-[#f2cbd9] dark:text-[#321d28]"
         disabled={isSubmitting}
         type="submit"
       >
