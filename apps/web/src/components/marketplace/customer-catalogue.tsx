@@ -1,30 +1,34 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import type {
   PublicCity,
   PublicMasterService,
   PublicServiceCategory,
-} from '@beautyathome/marketplace';
+} from "@beautyathome/marketplace";
 
-import { listCategories, listCities, listServices } from '@/lib/api/marketplace-client';
+import {
+  listCategories,
+  listCities,
+  listServices,
+} from "@/lib/api/marketplace-client";
 
 const cardGradients = [
-  'from-[#f8dce6] to-[#f2c3d3]',
-  'from-[#f4e4d7] to-[#e8cbb7]',
-  'from-[#e9dff5] to-[#d7c4eb]',
-  'from-[#dfeee9] to-[#c7dfd6]',
+  "from-[#f8dce6] to-[#f2c3d3]",
+  "from-[#f4e4d7] to-[#e8cbb7]",
+  "from-[#e9dff5] to-[#d7c4eb]",
+  "from-[#dfeee9] to-[#c7dfd6]",
 ];
 
 export function CustomerCatalogue() {
   const [cities, setCities] = useState<PublicCity[]>([]);
   const [categories, setCategories] = useState<PublicServiceCategory[]>([]);
   const [services, setServices] = useState<PublicMasterService[]>([]);
-  const [cityId, setCityId] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [search, setSearch] = useState('');
+  const [cityId, setCityId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [catalogueVersion, setCatalogueVersion] = useState(0);
@@ -34,15 +38,18 @@ export function CustomerCatalogue() {
     setLoading(true);
     setError(null);
 
-    void Promise.all([listCities(controller.signal), listCategories(undefined, controller.signal)])
+    void Promise.all([
+      listCities(controller.signal),
+      listCategories(undefined, controller.signal),
+    ])
       .then(([cityPage, categoryPage]) => {
         setCities(cityPage.data);
         setCategories(categoryPage.data);
-        setCityId(cityPage.data[0]?.id ?? '');
+        setCityId(cityPage.data[0]?.id ?? "");
         if (cityPage.data.length === 0) setLoading(false);
       })
       .catch(() => {
-        setError('The service catalogue is temporarily unavailable.');
+        setError("The service catalogue is temporarily unavailable.");
         setLoading(false);
       });
 
@@ -63,21 +70,21 @@ export function CustomerCatalogue() {
         cityId,
         categoryId: categoryId || undefined,
         search: search.trim().length >= 2 ? search.trim() : undefined,
-        sort: 'nameAsc',
+        sort: "nameAsc",
         limit: 100,
       },
       controller.signal,
     )
       .then((page) => setServices(page.data))
-      .catch(() => setError('We could not load services for this city.'))
+      .catch(() => setError("We could not load services for this city."))
       .finally(() => setLoading(false));
 
     return () => controller.abort();
   }, [categoryId, catalogueVersion, cityId, search]);
 
   function clearFilters(): void {
-    setCategoryId('');
-    setSearch('');
+    setCategoryId("");
+    setSearch("");
   }
 
   return (
@@ -92,8 +99,8 @@ export function CustomerCatalogue() {
               Find the right care for your day.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-[#6c5661] dark:text-[#d7c4cc]">
-              Browse approved at-home services, review duration and price guidance, then choose an
-              eligible beauty professional.
+              Browse approved at-home services, review duration and price
+              guidance, then choose an eligible beauty professional.
             </p>
           </div>
 
@@ -158,7 +165,9 @@ export function CustomerCatalogue() {
               Available services
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em]">
-              {loading ? 'Preparing your catalogue' : `${services.length} service${services.length === 1 ? '' : 's'} found`}
+              {loading
+                ? "Preparing your catalogue"
+                : `${services.length} service${services.length === 1 ? "" : "s"} found`}
             </h2>
           </div>
           {categoryId || search ? (
@@ -192,7 +201,10 @@ export function CustomerCatalogue() {
         ) : null}
 
         {loading ? (
-          <div aria-label="Loading approved services" className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            aria-label="Loading approved services"
+            className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {Array.from({ length: 6 }, (_, index) => (
               <div
                 className="overflow-hidden rounded-[1.75rem] border border-[#eadde3] bg-white dark:border-[#3d2b34] dark:bg-[#21161c]"
@@ -214,10 +226,12 @@ export function CustomerCatalogue() {
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f5e2e9] text-xl text-[#7b3853] dark:bg-[#4b2c3a] dark:text-[#f2bfd3]">
               ✦
             </span>
-            <h3 className="mt-5 text-xl font-semibold">No matching services yet</h3>
+            <h3 className="mt-5 text-xl font-semibold">
+              No matching services yet
+            </h3>
             <p className="mx-auto mt-3 max-w-xl leading-7 text-[#715d67] dark:text-[#cdbac3]">
-              We are onboarding the Sikar catalogue carefully. Try a broader search or remove the
-              selected category.
+              We are onboarding the Sikar catalogue carefully. Try a broader
+              search or remove the selected category.
             </p>
             <button
               className="mt-6 rounded-full bg-[#3b1d2d] px-6 py-3 text-sm font-semibold text-white dark:bg-[#f2c9d9] dark:text-[#321d28]"
@@ -230,13 +244,18 @@ export function CustomerCatalogue() {
         ) : null}
 
         {!loading && services.length > 0 ? (
-          <section aria-label="Services" className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <section
+            aria-label="Services"
+            className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {services.map((service, index) => (
               <article
                 className="group flex flex-col overflow-hidden rounded-[1.75rem] border border-[#eadde3] bg-white shadow-[0_14px_40px_rgba(76,43,58,0.06)] transition hover:-translate-y-1 hover:border-[#d9b4c3] hover:shadow-[0_20px_48px_rgba(76,43,58,0.12)] dark:border-[#3d2b34] dark:bg-[#21161c]"
                 key={service.id}
               >
-                <div className={`relative h-32 bg-gradient-to-br ${cardGradients[index % cardGradients.length]}`}>
+                <div
+                  className={`relative h-32 bg-gradient-to-br ${cardGradients[index % cardGradients.length]}`}
+                >
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.8),transparent_36%)]" />
                   <span className="absolute bottom-4 left-5 rounded-full bg-white/75 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#704254] backdrop-blur">
                     {service.category.name}
@@ -244,21 +263,35 @@ export function CustomerCatalogue() {
                 </div>
 
                 <div className="flex flex-1 flex-col p-6">
-                  <h3 className="text-xl font-semibold tracking-[-0.02em]">{service.name}</h3>
+                  <h3 className="text-xl font-semibold tracking-[-0.02em]">
+                    {service.name}
+                  </h3>
                   <p className="mt-3 flex-1 text-sm leading-6 text-[#715d67] dark:text-[#cdbac3]">
                     {service.description}
                   </p>
 
                   <dl className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-[#fff7fa] p-4 text-sm dark:bg-[#2c1d24]">
                     <div>
-                      <dt className="text-xs uppercase tracking-[0.1em] text-[#9a7484]">Duration</dt>
-                      <dd className="mt-1 font-semibold">{service.defaultDurationMinutes} min</dd>
+                      <dt className="text-xs uppercase tracking-[0.1em] text-[#9a7484]">
+                        Duration
+                      </dt>
+                      <dd className="mt-1 font-semibold">
+                        {service.defaultDurationMinutes} min
+                      </dd>
                     </div>
                     <div>
-                      <dt className="text-xs uppercase tracking-[0.1em] text-[#9a7484]">Price range</dt>
+                      <dt className="text-xs uppercase tracking-[0.1em] text-[#9a7484]">
+                        Price range
+                      </dt>
                       <dd className="mt-1 font-semibold">
-                        ₹{Math.round(service.cityPricePolicy.minimumPricePaise / 100)}–₹
-                        {Math.round(service.cityPricePolicy.maximumPricePaise / 100)}
+                        ₹
+                        {Math.round(
+                          service.cityPricePolicy.minimumPricePaise / 100,
+                        )}
+                        –₹
+                        {Math.round(
+                          service.cityPricePolicy.maximumPricePaise / 100,
+                        )}
                       </dd>
                     </div>
                   </dl>
