@@ -27,6 +27,7 @@ import type { CookieOptions, Response } from 'express';
 import { AllowedAccountStatuses } from '../common/decorators/account-statuses.decorator';
 import { CurrentActor } from '../common/decorators/current-actor.decorator';
 import { Public } from '../common/decorators/public.decorator';
+import { AppException } from '../common/errors/app.exception';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import type {
   AuthenticatedActor,
@@ -52,6 +53,7 @@ export class AuthController {
     @Body(new ZodValidationPipe(OtpRequestSchema)) input: OtpRequest,
     @Req() request: RequestWithContext,
   ) {
+    this.assertSelfServiceRole(input);
     return this.auth.requestOtp(input, this.requestContext(request));
   }
 
@@ -64,6 +66,7 @@ export class AuthController {
     @Req() request: RequestWithContext,
     @Res({ passthrough: true }) response: Response,
   ): Promise<OtpVerifyResponse> {
+    this.assertSelfServiceRole(input);
     const session = await this.auth.verifyOtp(
       input,
       this.requestContext(request),
@@ -126,6 +129,16 @@ export class AuthController {
     sessionId: string,
   ): Promise<void> {
     return this.auth.revokeOwnedSession(actor, sessionId);
+  }
+
+  private assertSelfServiceRole(input: OtpRequest | OtpVerifyRequest): void {
+    if (input.purpose === 'SIGN_UP' && input.role !== 'CUSTOMER') {
+      throw new AppException(
+        'AUTH_ROLE_NOT_SELF_SERVICE',
+        HttpStatus.FORBIDDEN,
+        'This account type must be provisioned by authorized platform operations.',
+      );
+    }
   }
 
   private requestContext(request: RequestWithContext): RequestContext {
