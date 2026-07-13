@@ -31,10 +31,10 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#eadde3] bg-[#fffaf8]/90 text-[#2f1b28] backdrop-blur-xl dark:border-[#3a2932] dark:bg-[#171014]/90 dark:text-[#fff7fa]">
+    <header className="sticky top-0 z-50 border-b border-[#e6d8de] bg-[#fffaf7]/94 text-[#2f2027] backdrop-blur-xl dark:border-[#3a2b32] dark:bg-[#171114]/94 dark:text-[#fff8fa]">
       <div className="mx-auto flex min-h-18 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
-        <Link className="group flex items-center gap-3" href="/">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3b1d2d] font-serif text-lg font-semibold text-white shadow-sm transition group-hover:scale-105 dark:bg-[#f2c9d9] dark:text-[#321d28]">
+        <Link className="flex items-center gap-3" href="/">
+          <span className="flex h-9 w-9 items-center justify-center border border-[#3b1d2d] font-serif text-lg font-semibold text-[#3b1d2d] dark:border-[#f2cbd9] dark:text-[#f2cbd9]">
             B
           </span>
           <span>
@@ -52,14 +52,17 @@ export function SiteHeader() {
           <Link className="font-medium transition hover:text-[#a0486b]" href="/#how-it-works">
             How it works
           </Link>
-          <Link className="font-medium transition hover:text-[#a0486b]" href="/auth">
-            For professionals
+          <Link
+            className="font-medium transition hover:text-[#a0486b]"
+            href="/become-a-professional"
+          >
+            Become a professional
           </Link>
         </nav>
 
         <nav aria-label="Account" className="flex items-center justify-end gap-2 text-sm">
           <Link
-            className="rounded-full px-3 py-2 font-medium transition hover:bg-[#f4e6eb] md:hidden dark:hover:bg-[#33212a]"
+            className="px-2 py-2 font-medium transition hover:text-[#a0486b] md:hidden"
             href="/services"
           >
             Services
@@ -67,7 +70,7 @@ export function SiteHeader() {
           {session.status === 'authenticated' && session.principal ? (
             <>
               <Link
-                className="hidden rounded-full px-4 py-2 font-semibold transition hover:bg-[#f4e6eb] sm:inline-flex dark:hover:bg-[#33212a]"
+                className="hidden px-3 py-2 font-semibold transition hover:text-[#a0486b] sm:inline-flex"
                 href={
                   session.principal.activeRole === 'PROFESSIONAL'
                     ? '/professional'
@@ -83,7 +86,7 @@ export function SiteHeader() {
                     : 'My profile'}
               </Link>
               <Button
-                className="min-h-10 rounded-full border border-[#d8bdc8] px-4 font-semibold transition hover:bg-[#f4e6eb] disabled:cursor-wait disabled:opacity-60 dark:border-[#5b3c49] dark:hover:bg-[#33212a]"
+                className="min-h-10 border border-[#d2bdc6] px-4 font-semibold transition hover:border-[#8f526a] disabled:cursor-wait disabled:opacity-60 dark:border-[#5b3c49]"
                 disabled={isSigningOut}
                 onClick={() => void handleSignOut()}
               >
@@ -92,20 +95,20 @@ export function SiteHeader() {
             </>
           ) : session.status === 'unauthenticated' ? (
             <Link
-              className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#3b1d2d] px-5 font-semibold text-white shadow-sm transition hover:bg-[#54283d] dark:bg-[#f2c9d9] dark:text-[#321d28]"
+              className="inline-flex min-h-10 items-center justify-center bg-[#3b1d2d] px-5 font-semibold text-white transition hover:bg-[#54283d] dark:bg-[#f2c9d9] dark:text-[#321d28]"
               href="/auth"
             >
               Sign in
             </Link>
           ) : session.status === 'unavailable' ? (
             <Button
-              className="rounded-full border border-[#d8bdc8] px-4 py-2 font-semibold hover:bg-[#f4e6eb] dark:border-[#5b3c49] dark:hover:bg-[#33212a]"
+              className="border border-[#d2bdc6] px-4 py-2 font-semibold hover:border-[#8f526a] dark:border-[#5b3c49]"
               onClick={() => window.location.reload()}
             >
               Retry
             </Button>
           ) : (
-            <span className="inline-flex h-10 w-20 animate-pulse rounded-full bg-[#f0dce4] dark:bg-[#3c2731]">
+            <span className="inline-flex h-10 w-20 animate-pulse bg-[#f0dce4] dark:bg-[#3c2731]">
               <span className="sr-only">Checking session</span>
             </span>
           )}
@@ -113,7 +116,7 @@ export function SiteHeader() {
 
         {signOutError ? (
           <p
-            className="absolute inset-x-5 top-full mt-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-medium text-red-700 shadow-lg sm:inset-x-auto sm:right-8 dark:border-red-900 dark:bg-[#24171e] dark:text-red-300"
+            className="absolute inset-x-5 top-full mt-2 border border-red-200 bg-white px-4 py-3 text-sm font-medium text-red-700 shadow-lg sm:inset-x-auto sm:right-8 dark:border-red-900 dark:bg-[#24171e] dark:text-red-300"
             role="alert"
           >
             {signOutError}
