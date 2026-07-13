@@ -40,7 +40,21 @@ jobs:
         run: pnpm format:check
 
       - name: Lint
-        run: pnpm lint
+        id: lint
+        continue-on-error: true
+        run: pnpm lint 2>&1 | tee lint.log
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: lint.log
+          retention-days: 1
+
+      - name: Stop after lint failure
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
 
       - name: Typecheck
         run: pnpm typecheck
