@@ -1,6 +1,10 @@
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
 
-import { parseCorsOrigins, validateEnvironment } from './environment';
+import {
+  isAllowedCorsOrigin,
+  parseCorsOrigins,
+  validateEnvironment,
+} from './environment';
 
 function generateRsaEnvironmentKeys(): {
   privateKeyBase64: string;
@@ -89,6 +93,20 @@ describe('validateEnvironment', () => {
     );
   });
 
+  it('allows development OTP delivery only for an explicit Vercel preview', () => {
+    const result = validateEnvironment({
+      ...validDevelopmentEnvironment(),
+      NODE_ENV: 'production',
+      VERCEL_ENV: 'preview',
+      CORS_ORIGINS: 'https://beautyathome-web-preview.vercel.app',
+      CORS_PREVIEW_PROJECT: 'beautyathome-web-preview',
+      COOKIE_SECURE: 'true',
+      REFRESH_COOKIE_SAME_SITE: 'none',
+    });
+
+    expect(result.VERCEL_ENV).toBe('preview');
+  });
+
   it('rejects a wildcard CORS origin', () => {
     expect(() =>
       validateEnvironment({
@@ -142,5 +160,26 @@ describe('parseCorsOrigins', () => {
     expect(
       parseCorsOrigins(' https://app.example.com, ,https://admin.example.com '),
     ).toEqual(['https://app.example.com', 'https://admin.example.com']);
+  });
+});
+
+describe('isAllowedCorsOrigin', () => {
+  it('allows only the configured Vercel project during preview deployments', () => {
+    expect(
+      isAllowedCorsOrigin(
+        'https://beautyathome-web-preview-abc.vercel.app',
+        [],
+        'preview',
+        'beautyathome-web-preview',
+      ),
+    ).toBe(true);
+    expect(
+      isAllowedCorsOrigin(
+        'https://other-project-abc.vercel.app',
+        [],
+        'preview',
+        'beautyathome-web-preview',
+      ),
+    ).toBe(false);
   });
 });

@@ -7,12 +7,18 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/errors/api-exception.filter';
-import { parseCorsOrigins, type Environment } from './config/environment';
+import {
+  isAllowedCorsOrigin,
+  parseCorsOrigins,
+  type Environment,
+} from './config/environment';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   const config = app.get(ConfigService<Environment, true>);
   const origins = parseCorsOrigins(config.get('CORS_ORIGINS', { infer: true }));
+  const vercelEnvironment = config.get('VERCEL_ENV', { infer: true });
+  const previewProject = config.get('CORS_PREVIEW_PROJECT', { infer: true });
 
   app.setGlobalPrefix('api/v1');
   app.use(helmet());
@@ -25,7 +31,10 @@ async function bootstrap(): Promise<void> {
       origin: string | undefined,
       callback: (error: Error | null, allow?: boolean) => void,
     ) {
-      if (!origin || origins.includes(origin)) callback(null, true);
+      if (
+        isAllowedCorsOrigin(origin, origins, vercelEnvironment, previewProject)
+      )
+        callback(null, true);
       else callback(new Error('Origin is not allowed'), false);
     },
   });

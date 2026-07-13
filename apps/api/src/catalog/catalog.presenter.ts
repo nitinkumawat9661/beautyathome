@@ -18,7 +18,14 @@ export function presentCity(city: {
   countryCode: string;
   timeZone: string;
 }) {
-  return PublicCitySchema.parse(city);
+  return PublicCitySchema.parse({
+    id: city.id,
+    name: city.name,
+    slug: city.slug,
+    state: city.state,
+    countryCode: city.countryCode,
+    timeZone: city.timeZone,
+  });
 }
 
 export function presentServiceArea(area: {
@@ -27,7 +34,12 @@ export function presentServiceArea(area: {
   name: string;
   slug: string;
 }) {
-  return PublicServiceAreaSchema.parse(area);
+  return PublicServiceAreaSchema.parse({
+    id: area.id,
+    cityId: area.cityId,
+    name: area.name,
+    slug: area.slug,
+  });
 }
 
 export function presentAdminServiceArea(area: {
@@ -56,7 +68,13 @@ export function presentCategory(category: {
   description: string | null;
   displayOrder: number;
 }) {
-  return PublicServiceCategorySchema.parse(category);
+  return PublicServiceCategorySchema.parse({
+    id: category.id,
+    name: category.name,
+    slug: category.slug,
+    description: category.description,
+    displayOrder: category.displayOrder,
+  });
 }
 
 export function presentAdminCategory(category: {

@@ -12,9 +12,15 @@ const environmentSchema = z
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
+    VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
     API_PORT: z.coerce.number().int().min(1).max(65_535).default(4000),
     DATABASE_URL: z.string().trim().min(1),
     CORS_ORIGINS: z.string().trim().default('http://localhost:3000'),
+    CORS_PREVIEW_PROJECT: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9-]+$/)
+      .optional(),
     TRUST_PROXY: booleanString,
     JWT_PRIVATE_KEY_BASE64: z.string().min(1),
     JWT_PUBLIC_KEY_BASE64: z.string().min(1),
@@ -110,7 +116,10 @@ const environmentSchema = z
     }
 
     if (environment.OTP_DELIVERY_MODE === 'development') {
-      if (environment.NODE_ENV === 'production') {
+      if (
+        environment.NODE_ENV === 'production' &&
+        environment.VERCEL_ENV !== 'preview'
+      ) {
         context.addIssue({
           code: 'custom',
           path: ['OTP_DELIVERY_MODE'],
@@ -136,7 +145,11 @@ const environmentSchema = z
     }
 
     if (environment.NODE_ENV === 'production') {
-      if (environment.OTP_DELIVERY_MODE === 'disabled') {
+      if (
+        environment.OTP_DELIVERY_MODE === 'disabled' ||
+        (environment.OTP_DELIVERY_MODE === 'development' &&
+          environment.VERCEL_ENV !== 'preview')
+      ) {
         context.addIssue({
           code: 'custom',
           path: ['OTP_DELIVERY_MODE'],
@@ -151,6 +164,18 @@ const environmentSchema = z
           message: 'Refresh cookies must be secure in production',
         });
       }
+    }
+
+    if (
+      environment.CORS_PREVIEW_PROJECT &&
+      environment.VERCEL_ENV !== 'preview'
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['CORS_PREVIEW_PROJECT'],
+        message:
+          'Preview project CORS matching is only allowed on Vercel previews',
+      });
     }
 
     if (
@@ -267,6 +292,29 @@ export function parseCorsOrigins(value: string): string[] {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+}
+
+export function isAllowedCorsOrigin(
+  origin: string | undefined,
+  explicitOrigins: string[],
+  vercelEnvironment?: Environment['VERCEL_ENV'],
+  previewProject?: string,
+): boolean {
+  if (!origin || explicitOrigins.includes(origin)) return true;
+  if (vercelEnvironment !== 'preview' || !previewProject) return false;
+
+  try {
+    const parsed = new URL(origin);
+    return (
+      parsed.protocol === 'https:' &&
+      parsed.origin === origin &&
+      parsed.hostname.endsWith('.vercel.app') &&
+      (parsed.hostname === `${previewProject}.vercel.app` ||
+        parsed.hostname.startsWith(`${previewProject}-`))
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function decodeBase64(value: string, name: string): Buffer {
