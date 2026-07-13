@@ -134,7 +134,7 @@ export class AuthController {
   private assertSelfServiceRole(input: OtpRequest | OtpVerifyRequest): void {
     if (input.purpose === 'SIGN_UP' && input.role !== 'CUSTOMER') {
       throw new AppException(
-        'AUTH_ROLE_NOT_SELF_SERVICE',
+        'AUTH_ROLE_FORBIDDEN',
         HttpStatus.FORBIDDEN,
         'This account type must be provisioned by authorized platform operations.',
       );
