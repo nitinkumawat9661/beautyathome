@@ -1,24 +1,16 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 const categories = [
-  ["Hair care", "Hair spa, styling and occasion-ready finishes."],
-  ["Skin and facial", "Thoughtful skin rituals for your schedule."],
-  ["Makeup", "Polished looks for events and celebrations."],
-  ["Hands and feet", "Grooming without the salon commute."],
+  ['Hair care', 'Hair spa, styling and occasion-ready finishes.'],
+  ['Skin and facial', 'Thoughtful skin rituals for your schedule.'],
+  ['Makeup', 'Polished looks for events and celebrations.'],
+  ['Hands and feet', 'Grooming without the salon commute.'],
 ] as const;
 
 const steps = [
-  [
-    "01",
-    "Choose a service",
-    "See approved services with duration and price guidance.",
-  ],
-  [
-    "02",
-    "Select a professional",
-    "Compare eligible professionals before choosing.",
-  ],
-  ["03", "Confirm your slot", "Review the appointment in one secure account."],
+  ['01', 'Choose a service', 'See approved services with duration and price guidance.'],
+  ['02', 'Select a professional', 'Compare eligible professionals before choosing.'],
+  ['03', 'Confirm your slot', 'Review the appointment in one secure account.'],
 ] as const;
 
 export default function Home() {
@@ -36,9 +28,8 @@ export default function Home() {
               Beauty care that comes to your door.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#6c5661] dark:text-[#d7c4cc]">
-              Book at-home beauty appointments through a platform built around
-              clear service details, professional verification and a calmer
-              customer experience.
+              Book at-home beauty appointments through a platform built around clear service
+              details, professional verification and a calmer customer experience.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -55,18 +46,16 @@ export default function Home() {
               </Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-3 text-xs font-semibold text-[#6c5661] dark:text-[#d7c4cc]">
-              {[
-                "Verified before activation",
-                "Clear service pricing",
-                "Built for home visits",
-              ].map((item) => (
-                <span
-                  className="rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#281a21]"
-                  key={item}
-                >
-                  {item}
-                </span>
-              ))}
+              {['Verified before activation', 'Clear service pricing', 'Built for home visits'].map(
+                (item) => (
+                  <span
+                    className="rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#281a21]"
+                    key={item}
+                  >
+                    {item}
+                  </span>
+                ),
+              )}
             </div>
           </div>
 
@@ -77,9 +66,7 @@ export default function Home() {
               <div className="min-h-[480px] rounded-[1.75rem] bg-gradient-to-br from-[#f8dce6] via-[#eebfd0] to-[#d99aae] p-7">
                 <div className="flex items-center justify-between text-[#66364a]">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                      BeautyAtHome
-                    </p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em]">BeautyAtHome</p>
                     <p className="mt-1 text-sm">Sikar appointment experience</p>
                   </div>
                   <span className="rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold">
@@ -94,14 +81,9 @@ export default function Home() {
                     Your service. Your professional. Your time.
                   </h2>
                   <div className="mt-8 grid grid-cols-3 gap-2 text-center text-xs font-semibold text-[#6a4052]">
-                    {["Choose", "Compare", "Confirm"].map((label, index) => (
-                      <div
-                        className="rounded-2xl bg-white/70 px-2 py-4"
-                        key={label}
-                      >
-                        <span className="mb-2 block text-[#9b5874]">
-                          0{index + 1}
-                        </span>
+                    {['Choose', 'Compare', 'Confirm'].map((label, index) => (
+                      <div className="rounded-2xl bg-white/70 px-2 py-4" key={label}>
+                        <span className="mb-2 block text-[#9b5874]">0{index + 1}</span>
                         {label}
                       </div>
                     ))}
@@ -179,9 +161,7 @@ export default function Home() {
                 </span>
                 <div>
                   <h3 className="text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 leading-7 text-[#715d67] dark:text-[#cdbac3]">
-                    {description}
-                  </p>
+                  <p className="mt-2 leading-7 text-[#715d67] dark:text-[#cdbac3]">{description}</p>
                 </div>
               </article>
             ))}
@@ -199,8 +179,7 @@ export default function Home() {
               Bring your expertise to customers across Sikar.
             </h2>
             <p className="mt-5 leading-7 text-[#ead8df]">
-              Complete platform verification and manage your profile through a
-              dedicated workspace.
+              Complete platform verification and manage your profile through a dedicated workspace.
             </p>
           </div>
           <Link
