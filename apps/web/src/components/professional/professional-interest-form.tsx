@@ -46,7 +46,7 @@ export function ProfessionalInterestForm() {
   }
 
   return (
-    <form className="space-y-7" noValidate onSubmit={handleSubmit}>
+    <form className="space-y-7" onSubmit={handleSubmit}>
       <div className="grid gap-6 sm:grid-cols-2">
         <label className="text-sm font-medium">
           Full name
