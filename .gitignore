@@ -24,3 +24,5 @@ database/generated/
 .vscode/
 .DS_Store
 Thumbs.db
+.vercel
+.env*.local
