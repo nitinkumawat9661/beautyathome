@@ -31,6 +31,8 @@ export function CustomerCatalogue() {
 
   useEffect(() => {
     const controller = new AbortController();
+    // Reset request state when reloading the catalogue.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError(null);
 
