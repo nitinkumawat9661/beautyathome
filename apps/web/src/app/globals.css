@@ -1,29 +1,30 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --surface: #fafafa;
-  --muted: #52525b;
-  --border: #d4d4d8;
-  --focus: #18181b;
+  --background: #fffaf8;
+  --foreground: #2f1b28;
+  --surface: #ffffff;
+  --muted: #715d67;
+  --border: #eadde3;
+  --focus: #7b3853;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback', ui-monospace, monospace;
+  --font-sans: var(--font-geist-sans), 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono Fallback', ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --surface: #18181b;
-    --muted: #a1a1aa;
-    --border: #3f3f46;
-    --focus: #fafafa;
+    --background: #171014;
+    --foreground: #fff7fa;
+    --surface: #21161c;
+    --muted: #cdbac3;
+    --border: #3d2b34;
+    --focus: #f0b8ce;
   }
 }
 
@@ -31,16 +32,32 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-geist-sans), 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 button,
 input,
+select,
 textarea {
   font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: #e8bfd0;
+  color: #321d28;
 }
 
 :focus-visible {
