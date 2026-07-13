@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 const reviewSteps = [
   ['1', 'Submit your details', 'Tell us about your experience, services and work area.'],
   ['2', 'Admin review', 'The operations team checks eligibility and verification requirements.'],
-  ['3', 'Mobile activation', 'Approved professionals receive access on the verified mobile number.'],
+  [
+    '3',
+    'Mobile activation',
+    'Approved professionals receive access on the verified mobile number.',
+  ],
 ] as const;
 
 export default function BecomeAProfessionalPage() {

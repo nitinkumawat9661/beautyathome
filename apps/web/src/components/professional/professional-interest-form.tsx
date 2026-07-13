@@ -20,10 +20,7 @@ export function ProfessionalInterestForm() {
 
   if (submitted) {
     return (
-      <section
-        aria-live="polite"
-        className="border-y border-[#d8c7ce] py-8 dark:border-[#49343e]"
-      >
+      <section aria-live="polite" className="border-y border-[#d8c7ce] py-8 dark:border-[#49343e]">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#93506c] dark:text-[#e0a8bd]">
           Application prepared
         </p>

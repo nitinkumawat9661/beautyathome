@@ -40,7 +40,10 @@ export default function AuthenticationPage() {
           </div>
         </section>
 
-        <section aria-label="Mobile verification" className="border-t border-[#d8c7ce] pt-8 dark:border-[#49343e] lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
+        <section
+          aria-label="Mobile verification"
+          className="border-t border-[#d8c7ce] pt-8 dark:border-[#49343e] lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0"
+        >
           <OtpAuthForm mode="marketplace" />
         </section>
       </div>
