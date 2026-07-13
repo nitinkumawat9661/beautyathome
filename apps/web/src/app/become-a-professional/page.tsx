@@ -64,8 +64,9 @@ export default function BecomeAProfessionalPage() {
             <li>Approval may require identity, skill and service-area verification.</li>
           </ul>
           <p className="mt-8 border-t border-[#ddd0d6] pt-6 text-sm leading-6 text-[#715d67] dark:border-[#46333c] dark:text-[#cdbac3]">
-            Already approved? Use the same verified mobile number on the sign-in page and continue
-            as an approved professional.
+            Already approved? Use the same verified mobile number on the sign-in page and choose
+            Approved professional. After verification, you will continue to the professional
+            workspace.
           </p>
           <Link
             className="mt-5 inline-flex text-sm font-semibold text-[#7b3853] underline decoration-[#c9a6b4] underline-offset-8 dark:text-[#efb6cc]"
