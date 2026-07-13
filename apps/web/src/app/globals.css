@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 :root {
   --background: #fffaf8;
@@ -12,9 +12,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-cormorant), Georgia, 'Times New Roman', serif;
-  --font-mono: var(--font-geist-mono), 'Geist Mono Fallback', ui-monospace, monospace;
+  --font-sans:
+    var(--font-geist-sans), "Geist Fallback", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-serif: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  --font-mono:
+    var(--font-geist-mono), "Geist Mono Fallback", ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,7 +42,9 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  font-family:
+    var(--font-geist-sans), "Geist Fallback", ui-sans-serif, system-ui,
+    sans-serif;
   text-rendering: optimizeLegibility;
 }
 
