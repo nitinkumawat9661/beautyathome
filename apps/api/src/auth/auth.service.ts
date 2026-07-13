@@ -58,6 +58,8 @@ export class AuthService {
   ) {}
 
   async requestOtp(input: OtpRequest, context: RequestContext) {
+    this.assertSelfServiceRole(input);
+
     const id = randomUUID();
     const mobileLookup = this.crypto.mobileLookup(input.mobileNumber);
     const otp = this.delivery.getCode();
@@ -171,6 +173,8 @@ export class AuthService {
     input: OtpVerifyRequest,
     context: RequestContext,
   ): Promise<IssuedSession> {
+    this.assertSelfServiceRole(input);
+
     const sessionId = randomUUID();
     const familyId = randomUUID();
     const refreshToken = `${sessionId}.${this.crypto.randomRefreshSecret()}`;
@@ -707,6 +711,15 @@ export class AuthService {
     throw new Error('Authenticated profile is missing');
   }
 
+  private assertSelfServiceRole(input: OtpRequest | OtpVerifyRequest): void {
+    if (input.purpose === 'SIGN_UP' && input.role !== Role.CUSTOMER) {
+      throw new AppException(
+        'AUTH_ROLE_FORBIDDEN',
+        HttpStatus.FORBIDDEN,
+        'This account type must be provisioned by authorized platform operations.',
+      );
+    }
+  }
   private async ensureProfile(
     transaction: Prisma.TransactionClient,
     userId: string,
