@@ -1,16 +1,24 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 const categories = [
-  ['Hair care', 'Hair spa, styling and occasion-ready finishes.'],
-  ['Skin and facial', 'Thoughtful skin rituals for your schedule.'],
-  ['Makeup', 'Polished looks for events and celebrations.'],
-  ['Hands and feet', 'Grooming without the salon commute.'],
+  ["Hair care", "Hair spa, styling and occasion-ready finishes."],
+  ["Skin and facial", "Thoughtful skin rituals for your schedule."],
+  ["Makeup", "Polished looks for events and celebrations."],
+  ["Hands and feet", "Grooming without the salon commute."],
 ] as const;
 
 const steps = [
-  ['01', 'Choose a service', 'See approved services with duration and price guidance.'],
-  ['02', 'Select a professional', 'Compare eligible professionals before choosing.'],
-  ['03', 'Confirm your slot', 'Review the appointment in one secure account.'],
+  [
+    "01",
+    "Choose a service",
+    "See approved services with duration and price guidance.",
+  ],
+  [
+    "02",
+    "Select a professional",
+    "Compare eligible professionals before choosing.",
+  ],
+  ["03", "Confirm your slot", "Review the appointment in one secure account."],
 ] as const;
 
 export default function Home() {
@@ -28,8 +36,9 @@ export default function Home() {
               Beauty care that comes to your door.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#6c5661] dark:text-[#d7c4cc]">
-              Book at-home beauty appointments through a platform built around clear service details,
-              professional verification and a calmer customer experience.
+              Book at-home beauty appointments through a platform built around
+              clear service details, professional verification and a calmer
+              customer experience.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -46,13 +55,18 @@ export default function Home() {
               </Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-3 text-xs font-semibold text-[#6c5661] dark:text-[#d7c4cc]">
-              {['Verified before activation', 'Clear service pricing', 'Built for home visits'].map(
-                (item) => (
-                  <span className="rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#281a21]" key={item}>
-                    {item}
-                  </span>
-                ),
-              )}
+              {[
+                "Verified before activation",
+                "Clear service pricing",
+                "Built for home visits",
+              ].map((item) => (
+                <span
+                  className="rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#281a21]"
+                  key={item}
+                >
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -63,10 +77,14 @@ export default function Home() {
               <div className="min-h-[480px] rounded-[1.75rem] bg-gradient-to-br from-[#f8dce6] via-[#eebfd0] to-[#d99aae] p-7">
                 <div className="flex items-center justify-between text-[#66364a]">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em]">BeautyAtHome</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em]">
+                      BeautyAtHome
+                    </p>
                     <p className="mt-1 text-sm">Sikar appointment experience</p>
                   </div>
-                  <span className="rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold">At home</span>
+                  <span className="rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold">
+                    At home
+                  </span>
                 </div>
                 <div className="mt-16 rounded-[2rem] border border-white/70 bg-white/45 p-7 backdrop-blur-sm">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#875068]">
@@ -76,9 +94,14 @@ export default function Home() {
                     Your service. Your professional. Your time.
                   </h2>
                   <div className="mt-8 grid grid-cols-3 gap-2 text-center text-xs font-semibold text-[#6a4052]">
-                    {['Choose', 'Compare', 'Confirm'].map((label, index) => (
-                      <div className="rounded-2xl bg-white/70 px-2 py-4" key={label}>
-                        <span className="mb-2 block text-[#9b5874]">0{index + 1}</span>
+                    {["Choose", "Compare", "Confirm"].map((label, index) => (
+                      <div
+                        className="rounded-2xl bg-white/70 px-2 py-4"
+                        key={label}
+                      >
+                        <span className="mb-2 block text-[#9b5874]">
+                          0{index + 1}
+                        </span>
                         {label}
                       </div>
                     ))}
@@ -103,7 +126,10 @@ export default function Home() {
               Services for the moments that matter.
             </h2>
           </div>
-          <Link className="text-sm font-semibold text-[#7b3853] underline underline-offset-8 dark:text-[#efb6cc]" href="/services">
+          <Link
+            className="text-sm font-semibold text-[#7b3853] underline underline-offset-8 dark:text-[#efb6cc]"
+            href="/services"
+          >
             View complete catalogue
           </Link>
         </div>
@@ -118,7 +144,9 @@ export default function Home() {
                 0{index + 1}
               </span>
               <h3 className="mt-6 text-xl font-semibold">{title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#715d67] dark:text-[#cdbac3]">{description}</p>
+              <p className="mt-3 text-sm leading-6 text-[#715d67] dark:text-[#cdbac3]">
+                {description}
+              </p>
               <span className="mt-6 inline-flex text-sm font-semibold text-[#7b3853] dark:text-[#edb3ca]">
                 Browse services →
               </span>
@@ -127,7 +155,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="how-it-works" className="border-y border-[#eadde3] bg-[#f8eef2] dark:border-[#3a2932] dark:bg-[#20151b]">
+      <section
+        id="how-it-works"
+        className="border-y border-[#eadde3] bg-[#f8eef2] dark:border-[#3a2932] dark:bg-[#20151b]"
+      >
         <div className="mx-auto grid w-full max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:py-20">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9a5d76] dark:text-[#e1a8bf]">
@@ -139,13 +170,18 @@ export default function Home() {
           </div>
           <div className="grid gap-4">
             {steps.map(([number, title, description]) => (
-              <article className="grid gap-4 rounded-[1.5rem] border border-[#dfcdd5] bg-white/80 p-6 sm:grid-cols-[auto_1fr] dark:border-[#4a3440] dark:bg-[#291b22]" key={number}>
+              <article
+                className="grid gap-4 rounded-[1.5rem] border border-[#dfcdd5] bg-white/80 p-6 sm:grid-cols-[auto_1fr] dark:border-[#4a3440] dark:bg-[#291b22]"
+                key={number}
+              >
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#3b1d2d] text-sm font-semibold text-white dark:bg-[#f1c8d8] dark:text-[#321d28]">
                   {number}
                 </span>
                 <div>
                   <h3 className="text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 leading-7 text-[#715d67] dark:text-[#cdbac3]">{description}</p>
+                  <p className="mt-2 leading-7 text-[#715d67] dark:text-[#cdbac3]">
+                    {description}
+                  </p>
                 </div>
               </article>
             ))}
@@ -156,15 +192,21 @@ export default function Home() {
       <section className="mx-auto w-full max-w-7xl px-5 py-16 sm:px-8 sm:py-20">
         <div className="rounded-[2rem] bg-[#3b1d2d] px-7 py-10 text-white shadow-[0_30px_70px_rgba(59,29,45,0.2)] sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-12 lg:px-14">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e9b7ca]">For beauty professionals</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e9b7ca]">
+              For beauty professionals
+            </p>
             <h2 className="mt-3 font-serif text-4xl tracking-[-0.03em] sm:text-5xl">
               Bring your expertise to customers across Sikar.
             </h2>
             <p className="mt-5 leading-7 text-[#ead8df]">
-              Complete platform verification and manage your profile through a dedicated workspace.
+              Complete platform verification and manage your profile through a
+              dedicated workspace.
             </p>
           </div>
-          <Link className="mt-8 inline-flex min-h-13 items-center justify-center rounded-full bg-white px-7 text-sm font-semibold text-[#3b1d2d] lg:mt-0" href="/auth">
+          <Link
+            className="mt-8 inline-flex min-h-13 items-center justify-center rounded-full bg-white px-7 text-sm font-semibold text-[#3b1d2d] lg:mt-0"
+            href="/auth"
+          >
             Start professional onboarding
           </Link>
         </div>
