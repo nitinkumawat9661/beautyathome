@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiErrorMessage, listProfessionalApplications } from '@/lib/api/client';
 
 type ApplicationPage = Awaited<ReturnType<typeof listProfessionalApplications>>;
+type ApplicationCursor = NonNullable<ApplicationPage['pageInfo']['nextCursor']>;
 type StatusFilter = '' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 export function ProfessionalApplicationsList() {
@@ -15,7 +16,7 @@ export function ProfessionalApplicationsList() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(
-    async (after?: string, append = false) => {
+    async (after?: ApplicationCursor, append = false) => {
       setLoading(true);
       setError(null);
       try {
