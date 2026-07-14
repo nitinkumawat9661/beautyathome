@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { apiErrorMessage, listProfessionalApplications } from '@/lib/api/client';
 
@@ -15,31 +15,48 @@ export function ProfessionalApplicationsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(
-    async (after?: ApplicationCursor, append = false) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const result = await listProfessionalApplications({
-          status: status || undefined,
-          after,
-          limit: 25,
-        });
-        setPage((current) =>
-          append && current ? { ...result, data: [...current.data, ...result.data] } : result,
-        );
-      } catch (requestError) {
-        setError(apiErrorMessage(requestError));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [status],
-  );
-
   useEffect(() => {
-    void load();
-  }, [load]);
+    let active = true;
+
+    void listProfessionalApplications({
+      status: status || undefined,
+      limit: 25,
+    })
+      .then((result) => {
+        if (!active) return;
+        setPage(result);
+        setError(null);
+      })
+      .catch((requestError) => {
+        if (active) setError(apiErrorMessage(requestError));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [status]);
+
+  async function loadMore(after: ApplicationCursor): Promise<void> {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await listProfessionalApplications({
+        status: status || undefined,
+        after,
+        limit: 25,
+      });
+      setPage((current) =>
+        current ? { ...result, data: [...current.data, ...result.data] } : result,
+      );
+    } catch (requestError) {
+      setError(apiErrorMessage(requestError));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-7xl px-6 py-10">
@@ -59,7 +76,11 @@ export function ProfessionalApplicationsList() {
           Status
           <select
             className="ml-3 min-h-10 border border-[#d9d3cd] bg-white px-3"
-            onChange={(event) => setStatus(event.target.value as StatusFilter)}
+            onChange={(event) => {
+              setLoading(true);
+              setError(null);
+              setStatus(event.target.value as StatusFilter);
+            }}
             value={status}
           >
             <option value="">All</option>
@@ -121,7 +142,7 @@ export function ProfessionalApplicationsList() {
           <button
             className="min-h-11 border border-[#4a2435] px-5 font-semibold text-[#4a2435] disabled:opacity-60"
             disabled={loading}
-            onClick={() => void load(page.pageInfo.nextCursor ?? undefined, true)}
+            onClick={() => void loadMore(page.pageInfo.nextCursor as ApplicationCursor)}
             type="button"
           >
             {loading ? 'Loading…' : 'Load more'}
