@@ -30,10 +30,14 @@ export class ProfessionalApplicationsService {
   ): Promise<ProfessionalApplicationAccepted> {
     const referenceId = randomUUID();
     const mobileLookupHash = this.crypto.mobileLookup(input.mobileNumber);
-    const mobileNumberCiphertext = this.crypto.encryptMobile(input.mobileNumber);
+    const mobileNumberCiphertext = this.crypto.encryptMobile(
+      input.mobileNumber,
+    );
     const mobileNumberEncryptionKeyVersion = this.config.get(
       'PII_ENCRYPTION_KEY_VERSION',
-      { infer: true },
+      {
+        infer: true,
+      },
     );
     const servicesJson = JSON.stringify(input.services);
 

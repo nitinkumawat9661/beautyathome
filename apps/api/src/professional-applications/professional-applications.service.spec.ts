@@ -13,7 +13,8 @@ const input = ProfessionalApplicationInputSchema.parse({
   experienceBand: 'THREE_TO_FIVE',
   services: ['MAKEUP', 'SKIN_FACIAL'],
   coverage: 'Piprali Road and nearby areas',
-  workSummary: 'I provide party makeup and facial services for home appointments.',
+  workSummary:
+    'I provide party makeup and facial services for home appointments.',
   consent: true,
 });
 
