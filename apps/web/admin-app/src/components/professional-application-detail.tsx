@@ -60,7 +60,8 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
   async function submitDecision(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (!application) return;
-    if (decision === 'REJECT' && internalNote.trim().length === 0) {
+    const note = internalNote.trim();
+    if (decision === 'REJECT' && note.length === 0) {
       setError('An internal note is required when rejecting an application.');
       return;
     }
@@ -68,14 +69,22 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
     setBusy(true);
     setError(null);
     try {
-      setApplication(
-        await decideProfessionalApplication(application.id, {
-          decision,
-          expectedVersion: application.version,
-          reasonCode,
-          ...(internalNote.trim() ? { internalNote: internalNote.trim() } : {}),
-        }),
-      );
+      const input =
+        decision === 'APPROVE'
+          ? {
+              decision: 'APPROVE' as const,
+              expectedVersion: application.version,
+              reasonCode,
+              ...(note ? { internalNote: note } : {}),
+            }
+          : {
+              decision: 'REJECT' as const,
+              expectedVersion: application.version,
+              reasonCode,
+              internalNote: note,
+            };
+
+      setApplication(await decideProfessionalApplication(application.id, input));
     } catch (requestError) {
       setError(apiErrorMessage(requestError));
     } finally {
