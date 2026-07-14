@@ -7,7 +7,10 @@ import { PublicProfessionalApplicationsController } from './public-professional-
 
 @Module({
   imports: [AuthModule],
-  controllers: [PublicProfessionalApplicationsController, AdminProfessionalApplicationsController],
+  controllers: [
+    PublicProfessionalApplicationsController,
+    AdminProfessionalApplicationsController,
+  ],
   providers: [ProfessionalApplicationsService],
 })
 export class ProfessionalApplicationsModule {}
