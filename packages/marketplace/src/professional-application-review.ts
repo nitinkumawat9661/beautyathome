@@ -1,7 +1,4 @@
-import {
-  IndiaMobileNumberSchema,
-  MaskedIndiaMobileNumberSchema,
-} from '@beautyathome/auth';
+import { IndiaMobileNumberSchema, MaskedIndiaMobileNumberSchema } from '@beautyathome/auth';
 import { z } from 'zod';
 
 import {
@@ -55,18 +52,17 @@ export const ProfessionalApplicationSummarySchema = z
   })
   .strict();
 
-export const ProfessionalApplicationDetailSchema =
-  ProfessionalApplicationSummarySchema.extend({
-    mobileNumber: IndiaMobileNumberSchema,
-    coverage: z.string().trim().min(3).max(500),
-    workSummary: z.string().trim().min(20).max(2_000),
-    consentedAt: IsoUtcDateTimeSchema,
-    reviewedAt: IsoUtcDateTimeSchema.nullable(),
-    reviewedByUserId: z.string().uuid().nullable(),
-    linkedUserId: z.string().uuid().nullable(),
-    decisionReasonCode: ReasonCodeSchema.nullable(),
-    decisionNote: InternalNoteSchema.nullable(),
-  }).strict();
+export const ProfessionalApplicationDetailSchema = ProfessionalApplicationSummarySchema.extend({
+  mobileNumber: IndiaMobileNumberSchema,
+  coverage: z.string().trim().min(3).max(500),
+  workSummary: z.string().trim().min(20).max(2_000),
+  consentedAt: IsoUtcDateTimeSchema,
+  reviewedAt: IsoUtcDateTimeSchema.nullable(),
+  reviewedByUserId: z.string().uuid().nullable(),
+  linkedUserId: z.string().uuid().nullable(),
+  decisionReasonCode: ReasonCodeSchema.nullable(),
+  decisionNote: InternalNoteSchema.nullable(),
+}).strict();
 
 export const AdminProfessionalApplicationPageSchema = createCursorPageSchema(
   ProfessionalApplicationSummarySchema,
@@ -83,25 +79,22 @@ const decisionBase = {
   reasonCode: ReasonCodeSchema,
 };
 
-export const AdminProfessionalApplicationDecisionSchema = z.discriminatedUnion(
-  'decision',
-  [
-    z
-      .object({
-        ...decisionBase,
-        decision: z.literal('APPROVE'),
-        internalNote: InternalNoteSchema.optional(),
-      })
-      .strict(),
-    z
-      .object({
-        ...decisionBase,
-        decision: z.literal('REJECT'),
-        internalNote: InternalNoteSchema,
-      })
-      .strict(),
-  ],
-);
+export const AdminProfessionalApplicationDecisionSchema = z.discriminatedUnion('decision', [
+  z
+    .object({
+      ...decisionBase,
+      decision: z.literal('APPROVE'),
+      internalNote: InternalNoteSchema.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...decisionBase,
+      decision: z.literal('REJECT'),
+      internalNote: InternalNoteSchema,
+    })
+    .strict(),
+]);
 
 export type AdminProfessionalApplicationListQuery = z.infer<
   typeof AdminProfessionalApplicationListQuerySchema
