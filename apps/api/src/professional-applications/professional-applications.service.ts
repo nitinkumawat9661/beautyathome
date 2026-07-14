@@ -86,13 +86,20 @@ export class ProfessionalApplicationsService {
     private readonly audit: AuditService,
   ) {}
 
-  async submit(input: ProfessionalApplicationInput): Promise<ProfessionalApplicationAccepted> {
+  async submit(
+    input: ProfessionalApplicationInput,
+  ): Promise<ProfessionalApplicationAccepted> {
     const referenceId = randomUUID();
     const mobileLookupHash = this.crypto.mobileLookup(input.mobileNumber);
-    const mobileNumberCiphertext = this.crypto.encryptMobile(input.mobileNumber);
-    const mobileNumberEncryptionKeyVersion = this.config.get('PII_ENCRYPTION_KEY_VERSION', {
-      infer: true,
-    });
+    const mobileNumberCiphertext = this.crypto.encryptMobile(
+      input.mobileNumber,
+    );
+    const mobileNumberEncryptionKeyVersion = this.config.get(
+      'PII_ENCRYPTION_KEY_VERSION',
+      {
+        infer: true,
+      },
+    );
     const servicesJson = JSON.stringify(input.services);
 
     const applications = await this.prisma.$queryRaw<StoredApplication[]>`
@@ -352,7 +359,10 @@ export class ProfessionalApplicationsService {
       include: { roles: true },
     });
 
-    if (user && (user.status === UserStatus.BLOCKED || user.status === UserStatus.CLOSED)) {
+    if (
+      user &&
+      (user.status === UserStatus.BLOCKED || user.status === UserStatus.CLOSED)
+    ) {
       throw new AppException(
         'AUTH_ACCOUNT_UNAVAILABLE',
         HttpStatus.CONFLICT,
@@ -365,7 +375,8 @@ export class ProfessionalApplicationsService {
         data: {
           mobileNumberCiphertext: application.mobileNumberCiphertext,
           mobileNumberLookupHash: application.mobileNumberLookupHash,
-          mobileNumberEncryptionKeyVersion: application.mobileNumberEncryptionKeyVersion,
+          mobileNumberEncryptionKeyVersion:
+            application.mobileNumberEncryptionKeyVersion,
           mobileVerifiedAt: new Date(),
         },
         include: { roles: true },
@@ -455,7 +466,10 @@ export class ProfessionalApplicationsService {
         });
       } catch (error: unknown) {
         const retryable =
-          typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2034';
+          typeof error === 'object' &&
+          error !== null &&
+          'code' in error &&
+          error.code === 'P2034';
         if (!retryable || attempt === 3) throw error;
       }
     }
