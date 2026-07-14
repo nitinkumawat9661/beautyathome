@@ -62,7 +62,10 @@ function apiBaseUrl(): string {
     }
   }
 
-  return `${url.toString().replace(/\/+$/, '').replace(/\/api\/v1$/, '')}/api/v1`;
+  return `${url
+    .toString()
+    .replace(/\/+$/, '')
+    .replace(/\/api\/v1$/, '')}/api/v1`;
 }
 
 async function readJson(response: Response): Promise<unknown> {
@@ -82,10 +85,15 @@ async function errorFrom(response: Response): Promise<ApiClientError> {
   return new ApiClientError('The request could not be completed.', response.status);
 }
 
-async function send(path: string, init: RequestInit, token: string | null = null): Promise<Response> {
+async function send(
+  path: string,
+  init: RequestInit,
+  token: string | null = null,
+): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set('Accept', 'application/json');
-  if (init.body !== undefined && init.body !== null) headers.set('Content-Type', 'application/json');
+  if (init.body !== undefined && init.body !== null)
+    headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
   return fetch(`${apiBaseUrl()}/${path.replace(/^\/+/, '')}`, {
@@ -101,7 +109,11 @@ async function parseSuccess<T>(response: Response, parse: ResponseParser<T>): Pr
   try {
     return parse(await readJson(response));
   } catch {
-    throw new ApiClientError('The server returned an invalid response.', 502, 'SERVICE_UNAVAILABLE');
+    throw new ApiClientError(
+      'The server returned an invalid response.',
+      502,
+      'SERVICE_UNAVAILABLE',
+    );
   }
 }
 
@@ -150,13 +162,15 @@ async function authenticatedRequest<T>(
     await refreshSession();
     token = getAccessToken();
   }
-  if (!token) throw new ApiClientError('Authentication is required.', 401, 'AUTHENTICATION_REQUIRED');
+  if (!token)
+    throw new ApiClientError('Authentication is required.', 401, 'AUTHENTICATION_REQUIRED');
 
   let response = await send(path, init, token);
   if (response.status === 401) {
     await refreshSession();
     token = getAccessToken();
-    if (!token) throw new ApiClientError('Authentication is required.', 401, 'AUTHENTICATION_REQUIRED');
+    if (!token)
+      throw new ApiClientError('Authentication is required.', 401, 'AUTHENTICATION_REQUIRED');
     response = await send(path, init, token);
   }
   if (!response.ok) throw await errorFrom(response);
