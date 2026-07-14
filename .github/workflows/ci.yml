@@ -36,8 +36,23 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm db:generate
 
-      - name: Check formatting
-        run: pnpm format:check
+      - name: Format sources for inspection
+        run: pnpm format
+
+      - name: Verify formatted sources are committed
+        run: git diff --exit-code
+
+      - name: Upload formatted admin source
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-admin-source
+          path: |
+            apps/web/admin-app
+            apps/web/package.json
+            apps/web/tsconfig.json
+            turbo.json
+          if-no-files-found: error
 
       - name: Build
         run: pnpm build
