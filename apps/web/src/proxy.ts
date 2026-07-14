@@ -8,13 +8,8 @@ const configuredAdminHosts = new Set(
 );
 
 function requestHost(request: NextRequest): string {
-  const forwardedHost = request.headers
-    .get('x-forwarded-host')
-    ?.split(',')[0]
-    ?.trim();
-  return (forwardedHost ?? request.headers.get('host') ?? '')
-    .toLowerCase()
-    .replace(/:\d+$/, '');
+  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+  return (forwardedHost ?? request.headers.get('host') ?? '').toLowerCase().replace(/:\d+$/, '');
 }
 
 function isLocalDevelopmentHost(host: string): boolean {
