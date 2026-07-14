@@ -32,7 +32,10 @@ export class AdminProfessionalApplicationsController {
 
   @Get(':applicationId')
   get(
-    @Param('applicationId', new ZodValidationPipe(ProfessionalApplicationIdSchema))
+    @Param(
+      'applicationId',
+      new ZodValidationPipe(ProfessionalApplicationIdSchema),
+    )
     applicationId: string,
   ) {
     return this.applications.getAdmin(applicationId);
@@ -42,12 +45,20 @@ export class AdminProfessionalApplicationsController {
   startReview(
     @CurrentActor() actor: AuthenticatedActor,
     @CurrentRequestId() requestId: string,
-    @Param('applicationId', new ZodValidationPipe(ProfessionalApplicationIdSchema))
+    @Param(
+      'applicationId',
+      new ZodValidationPipe(ProfessionalApplicationIdSchema),
+    )
     applicationId: string,
     @Body(new ZodValidationPipe(ProfessionalApplicationStartReviewSchema))
     input: ProfessionalApplicationStartReview,
   ) {
-    return this.applications.startReview(actor, applicationId, input, requestId);
+    return this.applications.startReview(
+      actor,
+      applicationId,
+      input,
+      requestId,
+    );
   }
 
   @RequireRecentStepUp()
@@ -55,7 +66,10 @@ export class AdminProfessionalApplicationsController {
   decide(
     @CurrentActor() actor: AuthenticatedActor,
     @CurrentRequestId() requestId: string,
-    @Param('applicationId', new ZodValidationPipe(ProfessionalApplicationIdSchema))
+    @Param(
+      'applicationId',
+      new ZodValidationPipe(ProfessionalApplicationIdSchema),
+    )
     applicationId: string,
     @Body(new ZodValidationPipe(AdminProfessionalApplicationDecisionSchema))
     input: AdminProfessionalApplicationDecision,
