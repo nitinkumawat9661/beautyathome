@@ -95,7 +95,10 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
 
   return (
     <main className="mx-auto w-full max-w-5xl px-6 py-10">
-      <Link className="text-sm font-semibold text-[#4a2435] underline underline-offset-4" href="/professional-applications">
+      <Link
+        className="text-sm font-semibold text-[#4a2435] underline underline-offset-4"
+        href="/professional-applications"
+      >
         Back to applications
       </Link>
 
@@ -111,7 +114,9 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
         </div>
       </div>
 
-      {error ? <p className="mt-6 border border-red-200 bg-red-50 p-4 text-red-800">{error}</p> : null}
+      {error ? (
+        <p className="mt-6 border border-red-200 bg-red-50 p-4 text-red-800">{error}</p>
+      ) : null}
 
       <section className="mt-7 grid gap-6 border border-[#d9d3cd] bg-white p-6 md:grid-cols-2">
         <Detail label="Mobile number" value={application.mobileNumber} mono />
@@ -119,9 +124,14 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
         <Detail label="Experience" value={application.experienceBand.replaceAll('_', ' ')} />
         <Detail label="Coverage" value={application.coverage} />
         <Detail label="Services" value={application.services.join(', ').replaceAll('_', ' ')} />
-        <Detail label="Consent recorded" value={new Date(application.consentedAt).toLocaleString('en-IN')} />
+        <Detail
+          label="Consent recorded"
+          value={new Date(application.consentedAt).toLocaleString('en-IN')}
+        />
         <div className="md:col-span-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#6b625c]">Work summary</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#6b625c]">
+            Work summary
+          </p>
           <p className="mt-2 leading-7">{application.workSummary}</p>
         </div>
       </section>
@@ -138,10 +148,14 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
       ) : null}
 
       {!finalDecision ? (
-        <form className="mt-8 border-t border-[#d9d3cd] pt-8" onSubmit={(event) => void submitDecision(event)}>
+        <form
+          className="mt-8 border-t border-[#d9d3cd] pt-8"
+          onSubmit={(event) => void submitDecision(event)}
+        >
           <h2 className="text-2xl font-semibold">Record decision</h2>
           <p className="mt-2 text-sm leading-6 text-[#6b625c]">
-            Approval provisions the mobile number with professional sign-in access. This action is audited.
+            Approval provisions the mobile number with professional sign-in access. This action is
+            audited.
           </p>
 
           <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -162,7 +176,9 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
               <input
                 className="mt-2 min-h-12 w-full border border-[#d9d3cd] px-4 font-mono"
                 disabled={busy}
-                onChange={(event) => setReasonCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
+                onChange={(event) =>
+                  setReasonCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))
+                }
                 required
                 value={reasonCode}
               />
@@ -185,7 +201,11 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
             disabled={busy}
             type="submit"
           >
-            {busy ? 'Saving decision…' : decision === 'APPROVE' ? 'Approve professional' : 'Reject application'}
+            {busy
+              ? 'Saving decision…'
+              : decision === 'APPROVE'
+                ? 'Approve professional'
+                : 'Reject application'}
           </button>
         </form>
       ) : (
@@ -194,7 +214,9 @@ export function ProfessionalApplicationDetail({ applicationId }: { applicationId
           <p className="mt-3 leading-7 text-[#6b625c]">
             Reason: {application.decisionReasonCode ?? 'Not recorded'}
           </p>
-          {application.decisionNote ? <p className="mt-2 leading-7">{application.decisionNote}</p> : null}
+          {application.decisionNote ? (
+            <p className="mt-2 leading-7">{application.decisionNote}</p>
+          ) : null}
           {application.linkedUserId ? (
             <p className="mt-2 font-mono text-sm">Provisioned user: {application.linkedUserId}</p>
           ) : null}

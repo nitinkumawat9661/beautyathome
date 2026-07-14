@@ -14,26 +14,27 @@ export function ProfessionalApplicationsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (after?: string, append = false) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await listProfessionalApplications({
-        status: status || undefined,
-        after,
-        limit: 25,
-      });
-      setPage((current) =>
-        append && current
-          ? { ...result, data: [...current.data, ...result.data] }
-          : result,
-      );
-    } catch (requestError) {
-      setError(apiErrorMessage(requestError));
-    } finally {
-      setLoading(false);
-    }
-  }, [status]);
+  const load = useCallback(
+    async (after?: string, append = false) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await listProfessionalApplications({
+          status: status || undefined,
+          after,
+          limit: 25,
+        });
+        setPage((current) =>
+          append && current ? { ...result, data: [...current.data, ...result.data] } : result,
+        );
+      } catch (requestError) {
+        setError(apiErrorMessage(requestError));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [status],
+  );
 
   useEffect(() => {
     void load();
@@ -46,7 +47,9 @@ export function ProfessionalApplicationsList() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b625c]">
             Professional onboarding
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">Application review queue</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">
+            Application review queue
+          </h1>
           <p className="mt-3 max-w-2xl leading-7 text-[#6b625c]">
             Review submitted details before granting professional sign-in access.
           </p>
@@ -67,7 +70,9 @@ export function ProfessionalApplicationsList() {
         </label>
       </div>
 
-      {error ? <p className="mt-6 border border-red-200 bg-red-50 p-4 text-red-800">{error}</p> : null}
+      {error ? (
+        <p className="mt-6 border border-red-200 bg-red-50 p-4 text-red-800">{error}</p>
+      ) : null}
 
       <div className="mt-7 overflow-x-auto border border-[#d9d3cd] bg-white">
         <table className="w-full min-w-[820px] border-collapse text-left text-sm">
@@ -90,9 +95,14 @@ export function ProfessionalApplicationsList() {
                 <td className="px-4 py-4">{application.city}</td>
                 <td className="px-4 py-4">{application.experienceBand.replaceAll('_', ' ')}</td>
                 <td className="px-4 py-4">{application.status.replaceAll('_', ' ')}</td>
-                <td className="px-4 py-4">{new Date(application.createdAt).toLocaleString('en-IN')}</td>
                 <td className="px-4 py-4">
-                  <Link className="font-semibold text-[#4a2435] underline underline-offset-4" href={`/professional-applications/${application.id}`}>
+                  {new Date(application.createdAt).toLocaleString('en-IN')}
+                </td>
+                <td className="px-4 py-4">
+                  <Link
+                    className="font-semibold text-[#4a2435] underline underline-offset-4"
+                    href={`/professional-applications/${application.id}`}
+                  >
                     Review
                   </Link>
                 </td>
