@@ -26,11 +26,7 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
-  transpilePackages: [
-    '@beautyathome/auth',
-    '@beautyathome/marketplace',
-    '@beautyathome/types',
-  ],
+  transpilePackages: ['@beautyathome/auth', '@beautyathome/marketplace', '@beautyathome/types'],
   async headers() {
     return [
       {
