@@ -19,8 +19,7 @@ const input = ProfessionalApplicationInputSchema.parse({
   experienceBand: 'THREE_TO_FIVE',
   services: ['MAKEUP', 'SKIN_FACIAL'],
   coverage: 'Piprali Road and nearby areas',
-  workSummary:
-    'I provide party makeup and facial services for home appointments.',
+  workSummary: 'I provide party makeup and facial services for home appointments.',
   consent: true,
 });
 
@@ -43,8 +42,7 @@ const applicationRow = {
   experienceBand: 'THREE_TO_FIVE',
   services: ['MAKEUP', 'SKIN_FACIAL'],
   coverage: 'Piprali Road and nearby areas',
-  workSummary:
-    'I provide party makeup and facial services for home appointments.',
+  workSummary: 'I provide party makeup and facial services for home appointments.',
   consentedAt: new Date('2026-07-15T08:00:00.000Z'),
   status: 'UNDER_REVIEW',
   reviewedAt: new Date('2026-07-15T08:15:00.000Z'),
@@ -121,9 +119,8 @@ describe('ProfessionalApplicationsService', () => {
       auditEvent: { create: jest.fn().mockResolvedValue({}) },
     };
     const prisma = {
-      $transaction: jest.fn(
-        async (operation: (writer: typeof transaction) => Promise<unknown>) =>
-          operation(transaction),
+      $transaction: jest.fn(async (operation: (writer: typeof transaction) => Promise<unknown>) =>
+        operation(transaction),
       ),
     };
     const crypto = {
