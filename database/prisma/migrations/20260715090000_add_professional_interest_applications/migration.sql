@@ -26,10 +26,22 @@ CREATE TABLE "professional_interest_applications" (
   "work_summary" VARCHAR(2000) NOT NULL,
   "consented_at" TIMESTAMPTZ(3) NOT NULL,
   "status" "professional_interest_status" NOT NULL DEFAULT 'SUBMITTED',
+  "reviewed_by_user_id" UUID,
+  "reviewed_at" TIMESTAMPTZ(3),
+  "linked_user_id" UUID,
+  "decision_reason_code" VARCHAR(80),
+  "decision_note" VARCHAR(2000),
+  "version" INTEGER NOT NULL DEFAULT 1,
   "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  CONSTRAINT "professional_interest_applications_pkey" PRIMARY KEY ("id")
+  CONSTRAINT "professional_interest_applications_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "professional_interest_applications_reviewer_fkey"
+    FOREIGN KEY ("reviewed_by_user_id") REFERENCES "users"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT "professional_interest_applications_linked_user_fkey"
+    FOREIGN KEY ("linked_user_id") REFERENCES "users"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE UNIQUE INDEX "professional_interest_applications_reference_key"
@@ -40,3 +52,9 @@ CREATE UNIQUE INDEX "professional_interest_applications_mobile_lookup_key"
 
 CREATE INDEX "professional_interest_applications_status_created_at_idx"
   ON "professional_interest_applications"("status", "created_at");
+
+CREATE INDEX "professional_interest_applications_reviewer_idx"
+  ON "professional_interest_applications"("reviewed_by_user_id", "reviewed_at");
+
+CREATE INDEX "professional_interest_applications_linked_user_idx"
+  ON "professional_interest_applications"("linked_user_id");
