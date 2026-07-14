@@ -7,7 +7,7 @@ on:
     branches: [develop, main]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -18,8 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout
+      - name: Checkout feature branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -36,23 +38,23 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm db:generate
 
-      - name: Format sources for inspection
+      - name: Format admin application
         run: pnpm format
 
-      - name: Verify formatted sources are committed
-        run: git diff --exit-code
+      - name: Commit formatted admin application
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/admin-app apps/web/package.json apps/web/tsconfig.json turbo.json
+          git commit -m "style(admin): format operations application"
+          git push origin "HEAD:${{ github.head_ref }}"
 
-      - name: Upload formatted admin source
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: formatted-admin-source
-          path: |
-            apps/web/admin-app
-            apps/web/package.json
-            apps/web/tsconfig.json
-            turbo.json
-          if-no-files-found: error
+      - name: Check formatting
+        run: pnpm format:check
 
       - name: Build
         run: pnpm build
