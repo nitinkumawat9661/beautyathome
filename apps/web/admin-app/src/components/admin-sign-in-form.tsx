@@ -131,7 +131,11 @@ export function AdminSignInForm() {
           disabled={submitting}
           type="submit"
         >
-          {submitting ? 'Verifying…' : challengeId ? 'Verify and continue' : 'Send verification code'}
+          {submitting
+            ? 'Verifying…'
+            : challengeId
+              ? 'Verify and continue'
+              : 'Send verification code'}
         </button>
         {challengeId ? (
           <button
