@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-const protectionBypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+const protectionBypassSecret = process.env.UPSTREAM_VERCEL_PROTECTION_BYPASS_SECRET?.trim();
+const upstreamRequestOrigin = process.env.UPSTREAM_API_REQUEST_ORIGIN?.trim();
 const requestTimeoutMs = 15_000;
 
 type RouteContext = {
@@ -46,7 +47,7 @@ function forwardedRequestHeaders(request: NextRequest): Headers {
     if (value) headers.set(name, value);
   }
 
-  headers.set('origin', request.nextUrl.origin);
+  headers.set('origin', upstreamRequestOrigin || request.nextUrl.origin);
 
   if (protectionBypassSecret) {
     headers.set('x-vercel-protection-bypass', protectionBypassSecret);
