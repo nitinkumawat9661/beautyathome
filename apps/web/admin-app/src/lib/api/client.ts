@@ -44,22 +44,17 @@ export class ApiClientError extends Error {
 }
 
 function apiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return '/api/v1';
+  }
+
   const value = configuredApiUrl || 'http://localhost:4000';
   let url: URL;
+
   try {
     url = new URL(value);
   } catch {
     throw new ApiClientError('The operations API is not configured.', 503, 'SERVICE_UNAVAILABLE');
-  }
-
-  if (typeof window !== 'undefined') {
-    const localPage = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (!configuredApiUrl && !localPage) {
-      throw new ApiClientError('The operations API is not configured.', 503, 'SERVICE_UNAVAILABLE');
-    }
-    if (!localPage && url.protocol !== 'https:') {
-      throw new ApiClientError('The operations API requires HTTPS.', 503, 'SERVICE_UNAVAILABLE');
-    }
   }
 
   return `${url
@@ -67,7 +62,6 @@ function apiBaseUrl(): string {
     .replace(/\/+$/, '')
     .replace(/\/api\/v1$/, '')}/api/v1`;
 }
-
 async function readJson(response: Response): Promise<unknown> {
   if (!(response.headers.get('content-type') ?? '').includes('application/json')) return null;
   try {
