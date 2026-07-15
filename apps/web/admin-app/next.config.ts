@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:4000';
@@ -23,7 +24,13 @@ const contentSecurityPolicy = [
   `connect-src 'self' ${apiOrigin}${development ? ' ws: wss:' : ''}`,
 ].join('; ');
 
+const monorepoRoot = path.resolve(process.cwd(), '../..');
+
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: monorepoRoot,
+  turbopack: {
+    root: monorepoRoot,
+  },
   output: 'standalone',
   poweredByHeader: false,
   transpilePackages: ['@beautyathome/auth', '@beautyathome/marketplace', '@beautyathome/types'],
