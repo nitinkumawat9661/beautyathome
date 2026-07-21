@@ -26,7 +26,6 @@ import {
 
 type ResponseParser<T> = (value: unknown) => T;
 
-const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 const requestTimeoutMs = 15_000;
 const refreshLockName = 'beautyathome-refresh-token';
 const refreshLeaseKey = 'beautyathome:refresh-lock';
@@ -50,36 +49,7 @@ function endpointUrl(path: string): string {
 }
 
 function resolveApiBaseUrl(): string {
-  const value = configuredApiUrl || 'http://localhost:4000';
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    throw new ApiClientError('The application API is not configured.', 503, 'SERVICE_UNAVAILABLE');
-  }
-
-  if (typeof window !== 'undefined') {
-    const localPage = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (!configuredApiUrl && !localPage) {
-      throw new ApiClientError(
-        'The application API is not configured.',
-        503,
-        'SERVICE_UNAVAILABLE',
-      );
-    }
-    if (!localPage && url.protocol !== 'https:') {
-      throw new ApiClientError(
-        'The application API requires a secure connection.',
-        503,
-        'SERVICE_UNAVAILABLE',
-      );
-    }
-  }
-
-  return `${url
-    .toString()
-    .replace(/\/+$/, '')
-    .replace(/\/api\/v1$/, '')}/api/v1`;
+  return '/api/v1';
 }
 
 async function readJson(response: Response): Promise<unknown> {
