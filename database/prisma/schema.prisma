@@ -40,6 +40,24 @@ enum VerificationStatus {
   @@map("verification_status")
 }
 
+enum ProfessionalExperienceBand {
+  LESS_THAN_ONE
+  ONE_TO_TWO
+  THREE_TO_FIVE
+  SIX_PLUS
+
+  @@map("professional_experience_band")
+}
+
+enum ProfessionalInterestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+
+  @@map("professional_interest_status")
+}
+
 enum OtpPurpose {
   SIGN_IN
   SIGN_UP
@@ -230,24 +248,58 @@ model User {
   adminProfile                     AdminProfile?
   otpChallenges                    OtpChallenge[]
   authSessions                     AuthSession[]
-  serviceCategoriesCreated         ServiceCategory[]             @relation("ServiceCategoryCreator")
-  servicesCreated                  Service[]                     @relation("ServiceCreator")
-  servicesReviewed                 Service[]                     @relation("ServiceReviewer")
-  pricePoliciesCreated             ServiceCityPricePolicy[]      @relation("PricePolicyCreator")
-  pricePoliciesReviewed            ServiceCityPricePolicy[]      @relation("PricePolicyReviewer")
-  eligibilityReviews               ProfessionalProfile[]         @relation("EligibilityReviewer")
-  serviceRequestsReviewed          ProfessionalServiceRequest[]  @relation("ServiceRequestReviewer")
-  serviceRequestHistoryEvents      ServiceRequestStatusHistory[] @relation("ServiceRequestHistoryActor")
-  verificationApplicationsReviewed VerificationApplication[]     @relation("VerificationReviewer")
-  verificationNotesAuthored        VerificationNote[]            @relation("VerificationNoteAuthor")
-  verificationHistoryEvents        VerificationStatusHistory[]   @relation("VerificationHistoryActor")
-  professionalServicesSuspended    ProfessionalService[]         @relation("ProfessionalServiceSuspender")
-  auditEvents                      AuditEvent[]                  @relation("AuditActor")
+  serviceCategoriesCreated         ServiceCategory[]                 @relation("ServiceCategoryCreator")
+  servicesCreated                  Service[]                         @relation("ServiceCreator")
+  servicesReviewed                 Service[]                         @relation("ServiceReviewer")
+  pricePoliciesCreated             ServiceCityPricePolicy[]          @relation("PricePolicyCreator")
+  pricePoliciesReviewed            ServiceCityPricePolicy[]          @relation("PricePolicyReviewer")
+  eligibilityReviews               ProfessionalProfile[]             @relation("EligibilityReviewer")
+  serviceRequestsReviewed          ProfessionalServiceRequest[]      @relation("ServiceRequestReviewer")
+  serviceRequestHistoryEvents      ServiceRequestStatusHistory[]     @relation("ServiceRequestHistoryActor")
+  verificationApplicationsReviewed VerificationApplication[]         @relation("VerificationReviewer")
+  verificationNotesAuthored        VerificationNote[]                @relation("VerificationNoteAuthor")
+  verificationHistoryEvents        VerificationStatusHistory[]       @relation("VerificationHistoryActor")
+  professionalServicesSuspended    ProfessionalService[]             @relation("ProfessionalServiceSuspender")
+  professionalApplicationsReviewed ProfessionalInterestApplication[] @relation("ProfessionalInterestReviewer")
+  professionalApplicationsLinked   ProfessionalInterestApplication[] @relation("ProfessionalInterestLinkedUser")
+  auditEvents                      AuditEvent[]                      @relation("AuditActor")
 
   @@index([mobileNumberLookupHash], map: "users_mobile_number_lookup_hash_idx")
   @@index([status, deletedAt], map: "users_status_deleted_at_idx")
   @@index([createdAt], map: "users_created_at_idx")
   @@map("users")
+}
+
+model ProfessionalInterestApplication {
+  id                               String                     @id(map: "professional_interest_applications_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  publicReferenceId                String                     @unique(map: "professional_interest_applications_reference_key") @map("public_reference_id") @db.Uuid
+  fullName                         String                     @map("full_name") @db.VarChar(100)
+  mobileNumberCiphertext           String                     @map("mobile_number_ciphertext") @db.Text
+  mobileNumberLookupHash           String                     @unique(map: "professional_interest_applications_mobile_lookup_key") @map("mobile_number_lookup_hash") @db.Char(64)
+  mobileNumberEncryptionKeyVersion String                     @map("mobile_number_encryption_key_version") @db.VarChar(64)
+  city                             String                     @db.VarChar(120)
+  experienceBand                   ProfessionalExperienceBand @map("experience_band")
+  services                         Json
+  coverage                         String                     @db.VarChar(500)
+  workSummary                      String                     @map("work_summary") @db.VarChar(2000)
+  consentedAt                      DateTime                   @map("consented_at") @db.Timestamptz(3)
+  status                           ProfessionalInterestStatus @default(SUBMITTED)
+  reviewedByUserId                 String?                    @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt                       DateTime?                  @map("reviewed_at") @db.Timestamptz(3)
+  linkedUserId                     String?                    @map("linked_user_id") @db.Uuid
+  decisionReasonCode               String?                    @map("decision_reason_code") @db.VarChar(80)
+  decisionNote                     String?                    @map("decision_note") @db.VarChar(2000)
+  version                          Int                        @default(1)
+  createdAt                        DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                        DateTime                   @default(now()) @map("updated_at") @db.Timestamptz(3)
+
+  reviewedByUser User? @relation("ProfessionalInterestReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "professional_interest_applications_reviewer_fkey")
+  linkedUser     User? @relation("ProfessionalInterestLinkedUser", fields: [linkedUserId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "professional_interest_applications_linked_user_fkey")
+
+  @@index([status, createdAt], map: "professional_interest_applications_status_created_at_idx")
+  @@index([reviewedByUserId, reviewedAt], map: "professional_interest_applications_reviewer_idx")
+  @@index([linkedUserId], map: "professional_interest_applications_linked_user_idx")
+  @@map("professional_interest_applications")
 }
 
 /// Current role grants. Security-sensitive grant and revoke operations also

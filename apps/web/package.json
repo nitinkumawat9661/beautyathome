@@ -4,11 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "typecheck": "tsc --noEmit",
-    "clean": "rimraf .next",
+    "dev:admin": "next dev admin-app -p 3001",
+    "build": "next build && pnpm build:admin",
+    "build:admin": "pnpm --filter @beautyathome/types build && pnpm --filter @beautyathome/auth build && pnpm --filter @beautyathome/marketplace build && next build admin-app",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p admin-app/tsconfig.json",
+    "clean": "rimraf .next admin-app/.next",
     "start": "next start",
-    "lint": "eslint"
+    "start:admin": "next start admin-app -p 3001",
+    "lint": "eslint src && cd admin-app && eslint ."
   },
   "dependencies": {
     "@beautyathome/auth": "workspace:*",

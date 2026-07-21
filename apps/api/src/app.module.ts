@@ -26,6 +26,7 @@ import { MarketplaceCommonModule } from './common/marketplace-common.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
+import { ProfessionalApplicationsModule } from './professional-applications/professional-applications.module';
 import { ProfessionalServicesModule } from './professional-services/professional-services.module';
 import { ProfessionalsModule } from './professionals/professionals.module';
 import { UsersModule } from './users/users.module';
@@ -48,6 +49,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     CatalogModule,
     CommerceModule,
+    ProfessionalApplicationsModule,
     ProfessionalServicesModule,
     ProfessionalsModule,
     AvailabilityModule,

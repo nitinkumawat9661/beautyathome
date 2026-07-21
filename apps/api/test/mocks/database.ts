@@ -216,4 +216,7 @@ export const VerificationStatus = {
 
 export const Prisma = {
   TransactionIsolationLevel: { Serializable: 'Serializable' },
+  sql(strings: TemplateStringsArray, ...values: unknown[]) {
+    return { strings: [...strings], values };
+  },
 } as const;
